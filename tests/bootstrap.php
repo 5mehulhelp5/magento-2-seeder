@@ -371,4 +371,244 @@ if (!class_exists(\Magento\Catalog\Model\Product\Visibility::class)) {
     ');
 }
 
+if (!interface_exists(\Magento\Cms\Api\Data\PageInterface::class)) {
+    eval('
+        namespace Magento\Cms\Api\Data;
+        interface PageInterface {
+            public function getId();
+            public function getIdentifier(): ?string;
+            public function setIdentifier(string $identifier): self;
+            public function getTitle(): ?string;
+            public function setTitle(string $title): self;
+            public function getContent(): ?string;
+            public function setContent(string $content): self;
+            public function setIsActive(bool $isActive): self;
+            public function setStoreId($storeId): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Cms\Api\Data\PageInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Cms\Api\Data;
+        class PageInterfaceFactory {
+            public function create(array $data = []): PageInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Cms\Api\Data\PageSearchResultsInterface::class)) {
+    eval('
+        namespace Magento\Cms\Api\Data;
+        interface PageSearchResultsInterface extends \Magento\Framework\Api\SearchResultsInterface {
+            public function getItems(): array;
+            public function setItems(array $items): \Magento\Framework\Api\SearchResultsInterface;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Cms\Api\PageRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Cms\Api;
+        interface PageRepositoryInterface {
+            public function save(\Magento\Cms\Api\Data\PageInterface $page): \Magento\Cms\Api\Data\PageInterface;
+            public function getById(int $pageId): \Magento\Cms\Api\Data\PageInterface;
+            public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria): \Magento\Cms\Api\Data\PageSearchResultsInterface;
+            public function delete(\Magento\Cms\Api\Data\PageInterface $page): bool;
+            public function deleteById(int $pageId): bool;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Cms\Api\Data\BlockInterface::class)) {
+    eval('
+        namespace Magento\Cms\Api\Data;
+        interface BlockInterface {
+            public function getId();
+            public function getIdentifier(): ?string;
+            public function setIdentifier(string $identifier): self;
+            public function getTitle(): ?string;
+            public function setTitle(string $title): self;
+            public function getContent(): ?string;
+            public function setContent(string $content): self;
+            public function setIsActive(bool $isActive): self;
+            public function setStoreId($storeId): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Cms\Api\Data\BlockInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Cms\Api\Data;
+        class BlockInterfaceFactory {
+            public function create(array $data = []): BlockInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Cms\Api\Data\BlockSearchResultsInterface::class)) {
+    eval('
+        namespace Magento\Cms\Api\Data;
+        interface BlockSearchResultsInterface extends \Magento\Framework\Api\SearchResultsInterface {
+            public function getItems(): array;
+            public function setItems(array $items): \Magento\Framework\Api\SearchResultsInterface;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Cms\Api\BlockRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Cms\Api;
+        interface BlockRepositoryInterface {
+            public function save(\Magento\Cms\Api\Data\BlockInterface $block): \Magento\Cms\Api\Data\BlockInterface;
+            public function getById(int $blockId): \Magento\Cms\Api\Data\BlockInterface;
+            public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria): \Magento\Cms\Api\Data\BlockSearchResultsInterface;
+            public function delete(\Magento\Cms\Api\Data\BlockInterface $block): bool;
+            public function deleteById(int $blockId): bool;
+        }
+    ');
+}
+
+// Quote/Sales stubs for OrderHandler tests
+
+if (!interface_exists(\Magento\Quote\Api\Data\PaymentInterface::class)) {
+    eval('
+        namespace Magento\Quote\Api\Data;
+        interface PaymentInterface {
+            public function getMethod(): ?string;
+            public function setMethod(string $method): self;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Quote\Api\CartManagementInterface::class)) {
+    eval('
+        namespace Magento\Quote\Api;
+        interface CartManagementInterface {
+            public function createEmptyCart(): int;
+            public function placeOrder(int $cartId, \Magento\Quote\Api\Data\PaymentInterface $paymentMethod = null): int;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Quote\Api\Data\CartItemInterface::class)) {
+    eval('
+        namespace Magento\Quote\Api\Data;
+        interface CartItemInterface {
+            public function getItemId(): ?int;
+            public function setQuoteId($quoteId): self;
+            public function getSku(): ?string;
+            public function setSku(string $sku): self;
+            public function getQty(): float;
+            public function setQty(float $qty): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Quote\Api\Data\CartItemInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Quote\Api\Data;
+        class CartItemInterfaceFactory {
+            public function create(array $data = []): CartItemInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Quote\Api\CartItemRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Quote\Api;
+        interface CartItemRepositoryInterface {
+            public function getList(int $cartId): array;
+            public function save(\Magento\Quote\Api\Data\CartItemInterface $cartItem): \Magento\Quote\Api\Data\CartItemInterface;
+            public function deleteById(int $cartId, int $itemId): bool;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Quote\Api\Data\AddressInterface::class)) {
+    eval('
+        namespace Magento\Quote\Api\Data;
+        interface AddressInterface {
+            public function addData(array $data): self;
+            public function setCollectShippingRates(bool $flag): self;
+            public function setShippingMethod(string $method): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Quote\Model\Quote\Payment::class)) {
+    eval('
+        namespace Magento\Quote\Model\Quote;
+        class Payment {
+            public function setMethod(string $method): self { return $this; }
+            public function getMethod(): ?string { return null; }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Quote\Api\Data\CartInterface::class)) {
+    eval('
+        namespace Magento\Quote\Api\Data;
+        interface CartInterface {
+            public function getId(): ?int;
+            public function setCustomerEmail(string $email);
+            public function setCustomerIsGuest(bool $isGuest);
+            public function setCustomerFirstname(string $firstname);
+            public function setCustomerLastname(string $lastname);
+            public function getBillingAddress(): AddressInterface;
+            public function getShippingAddress(): AddressInterface;
+            public function getPayment(): \Magento\Quote\Model\Quote\Payment;
+            public function collectTotals(): self;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Quote\Api\CartRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Quote\Api;
+        interface CartRepositoryInterface {
+            public function get(int $cartId): \Magento\Quote\Api\Data\CartInterface;
+            public function save(\Magento\Quote\Api\Data\CartInterface $quote): void;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Sales\Api\Data\OrderInterface::class)) {
+    eval('
+        namespace Magento\Sales\Api\Data;
+        interface OrderInterface {
+            public function getEntityId(): ?string;
+            public function getIncrementId(): ?string;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Sales\Api\Data\OrderSearchResultInterface::class)) {
+    eval('
+        namespace Magento\Sales\Api\Data;
+        interface OrderSearchResultInterface {
+            public function getItems(): array;
+            public function getTotalCount(): int;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Sales\Api\OrderRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Sales\Api;
+        interface OrderRepositoryInterface {
+            public function get(int $id): \Magento\Sales\Api\Data\OrderInterface;
+            public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria): \Magento\Sales\Api\Data\OrderSearchResultInterface;
+            public function save(\Magento\Sales\Api\Data\OrderInterface $order): \Magento\Sales\Api\Data\OrderInterface;
+            public function delete(\Magento\Sales\Api\Data\OrderInterface $order): bool;
+        }
+    ');
+}
+
 require dirname(__DIR__) . '/vendor/autoload.php';
