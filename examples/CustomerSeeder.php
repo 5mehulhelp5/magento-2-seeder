@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'type' => 'customer',
+    'data' => [
+        [
+            'email' => 'john.doe@example.com',
+            'firstname' => 'John',
+            'lastname' => 'Doe',
+            'password' => 'Test1234!',
+        ],
+        [
+            'email' => 'jane.doe@example.com',
+            'firstname' => 'Jane',
+            'lastname' => 'Doe',
+            'password' => 'Test1234!',
+        ],
+    ],
+];
