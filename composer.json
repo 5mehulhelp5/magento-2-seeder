@@ -1,0 +1,33 @@
+{
+    "name": "davidlambauer/module-seeder",
+    "description": "Laravel-style database seeding for Magento 2",
+    "type": "magento2-module",
+    "license": "MIT",
+    "require": {
+        "php": "^8.1",
+        "magento/framework": "*",
+        "magento/module-customer": "*",
+        "magento/module-catalog": "*",
+        "magento/module-sales": "*",
+        "magento/module-quote": "*",
+        "magento/module-cms": "*",
+        "magento/module-checkout": "*",
+        "magento/module-catalog-inventory": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "files": [
+            "src/registration.php"
+        ],
+        "psr-4": {
+            "DavidLambauer\\Seeder\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DavidLambauer\\Seeder\\Test\\": "tests/"
+        }
+    }
+}
