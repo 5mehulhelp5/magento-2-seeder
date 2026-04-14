@@ -74,7 +74,7 @@ class OrderHandler implements EntityHandlerInterface
 
     public function clean(): void
     {
-        $searchCriteria = $this->searchCriteriaBuilder->create();
+        $searchCriteria = $this->searchCriteriaBuilder->setPageSize(10000)->create();
         $orders = $this->orderRepository->getList($searchCriteria);
 
         foreach ($orders->getItems() as $order) {

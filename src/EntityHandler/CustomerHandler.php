@@ -47,7 +47,7 @@ class CustomerHandler implements EntityHandlerInterface
 
     public function clean(): void
     {
-        $searchCriteria = $this->searchCriteriaBuilder->create();
+        $searchCriteria = $this->searchCriteriaBuilder->setPageSize(10000)->create();
         $customers = $this->customerRepository->getList($searchCriteria);
 
         foreach ($customers->getItems() as $customer) {

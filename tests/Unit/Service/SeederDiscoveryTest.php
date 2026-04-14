@@ -98,6 +98,45 @@ final class SeederDiscoveryTest extends TestCase
         $this->assertSame('customer', $seeders[0]->getType());
     }
 
+    public function test_discovers_namespaced_class_seeder_files(): void
+    {
+        $uniqueSuffix = str_replace('.', '', uniqid('', true));
+        $className = 'SeederTest\\Namespaced' . $uniqueSuffix . 'Seeder';
+        $shortName = 'Namespaced' . $uniqueSuffix . 'Seeder';
+
+        file_put_contents(
+            $this->tempDir . '/dev/seeders/' . $shortName . '.php',
+            sprintf(
+                "<?php\nnamespace SeederTest;\n\nuse DavidLambauer\\Seeder\\Api\\SeederInterface;\n\n"
+                . "class %s implements SeederInterface {\n"
+                . "    public function getType(): string { return 'product'; }\n"
+                . "    public function getOrder(): int { return 20; }\n"
+                . "    public function run(): void {}\n"
+                . "}\n",
+                'Namespaced' . $uniqueSuffix . 'Seeder'
+            )
+        );
+
+        $mockSeeder = $this->createMock(\DavidLambauer\Seeder\Api\SeederInterface::class);
+        $mockSeeder->method('getType')->willReturn('product');
+
+        $objectManager = $this->createMock(ObjectManagerInterface::class);
+        $objectManager->method('create')
+            ->with($className)
+            ->willReturn($mockSeeder);
+
+        $discovery = new SeederDiscovery(
+            $this->createDirectoryListMock($this->tempDir),
+            $objectManager,
+            new EntityHandlerPool([]),
+        );
+
+        $seeders = $discovery->discover();
+
+        $this->assertCount(1, $seeders);
+        $this->assertSame('product', $seeders[0]->getType());
+    }
+
     public function test_ignores_non_seeder_php_files(): void
     {
         file_put_contents(

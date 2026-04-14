@@ -10,6 +10,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\Product\Visibility;
+use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 
 class ProductHandler implements EntityHandlerInterface
@@ -18,6 +19,7 @@ class ProductHandler implements EntityHandlerInterface
         private readonly ProductInterfaceFactory $productFactory,
         private readonly ProductRepositoryInterface $productRepository,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly StockRegistryInterface $stockRegistry,
     ) {
     }
 
@@ -55,11 +57,16 @@ class ProductHandler implements EntityHandlerInterface
         }
 
         $this->productRepository->save($product);
+
+        $stockItem = $this->stockRegistry->getStockItemBySku($data['sku']);
+        $stockItem->setQty($data['qty'] ?? 100);
+        $stockItem->setIsInStock(true);
+        $this->stockRegistry->updateStockItemBySku($data['sku'], $stockItem);
     }
 
     public function clean(): void
     {
-        $searchCriteria = $this->searchCriteriaBuilder->create();
+        $searchCriteria = $this->searchCriteriaBuilder->setPageSize(10000)->create();
         $products = $this->productRepository->getList($searchCriteria);
 
         foreach ($products->getItems() as $product) {

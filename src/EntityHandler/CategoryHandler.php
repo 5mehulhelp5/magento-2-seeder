@@ -53,7 +53,7 @@ class CategoryHandler implements EntityHandlerInterface
             'nin'
         );
 
-        $searchCriteria = $this->searchCriteriaBuilder->create();
+        $searchCriteria = $this->searchCriteriaBuilder->setPageSize(10000)->create();
         $categories = $this->categoryList->getList($searchCriteria);
 
         foreach ($categories->getItems() as $category) {

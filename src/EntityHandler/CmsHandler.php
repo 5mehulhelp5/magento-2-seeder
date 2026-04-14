@@ -73,7 +73,7 @@ class CmsHandler implements EntityHandlerInterface
     private function cleanPages(): void
     {
         $this->searchCriteriaBuilder->addFilter('identifier', self::SEED_PREFIX . '%', 'like');
-        $searchCriteria = $this->searchCriteriaBuilder->create();
+        $searchCriteria = $this->searchCriteriaBuilder->setPageSize(10000)->create();
         $pages = $this->pageRepository->getList($searchCriteria);
 
         foreach ($pages->getItems() as $page) {
@@ -84,7 +84,7 @@ class CmsHandler implements EntityHandlerInterface
     private function cleanBlocks(): void
     {
         $this->searchCriteriaBuilder->addFilter('identifier', self::SEED_PREFIX . '%', 'like');
-        $searchCriteria = $this->searchCriteriaBuilder->create();
+        $searchCriteria = $this->searchCriteriaBuilder->setPageSize(10000)->create();
         $blocks = $this->blockRepository->getList($searchCriteria);
 
         foreach ($blocks->getItems() as $block) {

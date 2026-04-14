@@ -100,6 +100,7 @@ final class CmsHandlerTest extends TestCase
 
         $searchCriteriaBuilder = $this->createMock(SearchCriteriaBuilder::class);
         $searchCriteriaBuilder->method('addFilter')->willReturnSelf();
+        $searchCriteriaBuilder->method('setPageSize')->willReturnSelf();
         $searchCriteriaBuilder->method('create')->willReturn($searchCriteria);
 
         $pageRepository = $this->createMock(PageRepositoryInterface::class);

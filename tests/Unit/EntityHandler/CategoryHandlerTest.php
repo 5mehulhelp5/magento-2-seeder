@@ -60,6 +60,7 @@ final class CategoryHandlerTest extends TestCase
 
         $searchCriteriaBuilder = $this->createMock(SearchCriteriaBuilder::class);
         $searchCriteriaBuilder->method('addFilter')->willReturnSelf();
+        $searchCriteriaBuilder->method('setPageSize')->willReturnSelf();
         $searchCriteriaBuilder->method('create')->willReturn($searchCriteria);
 
         $categoryList = $this->createMock(CategoryListInterface::class);

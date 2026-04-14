@@ -44,12 +44,22 @@ class SeederDiscovery
 
     private function processFile(string $filePath): ?SeederInterface
     {
-        $result = include $filePath;
+        $classesBefore = get_declared_classes();
+        $result = include_once $filePath;
 
         if (is_array($result)) {
             return new ArraySeederAdapter($result, $this->handlerPool);
         }
 
+        // Find any newly declared class that implements SeederInterface
+        $newClasses = array_diff(get_declared_classes(), $classesBefore);
+        foreach ($newClasses as $className) {
+            if (is_a($className, SeederInterface::class, true)) {
+                return $this->objectManager->create($className);
+            }
+        }
+
+        // Fallback: check by filename convention (for classes loaded by prior includes)
         $className = pathinfo($filePath, PATHINFO_FILENAME);
         if (class_exists($className) && is_a($className, SeederInterface::class, true)) {
             return $this->objectManager->create($className);

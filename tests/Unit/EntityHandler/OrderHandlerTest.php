@@ -98,6 +98,7 @@ final class OrderHandlerTest extends TestCase
         $searchCriteria = $this->createMock(SearchCriteriaInterface::class);
 
         $searchCriteriaBuilder = $this->createMock(SearchCriteriaBuilder::class);
+        $searchCriteriaBuilder->method('setPageSize')->willReturnSelf();
         $searchCriteriaBuilder->method('create')->willReturn($searchCriteria);
 
         $orderRepository = $this->createMock(OrderRepositoryInterface::class);

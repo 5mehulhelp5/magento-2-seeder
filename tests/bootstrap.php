@@ -611,4 +611,28 @@ if (!interface_exists(\Magento\Sales\Api\OrderRepositoryInterface::class)) {
     ');
 }
 
+// CatalogInventory stubs for stock management
+
+if (!interface_exists(\Magento\CatalogInventory\Api\Data\StockItemInterface::class)) {
+    eval('
+        namespace Magento\CatalogInventory\Api\Data;
+        interface StockItemInterface {
+            public function getQty(): ?float;
+            public function setQty(float $qty): self;
+            public function getIsInStock(): ?bool;
+            public function setIsInStock(bool $isInStock): self;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\CatalogInventory\Api\StockRegistryInterface::class)) {
+    eval('
+        namespace Magento\CatalogInventory\Api;
+        interface StockRegistryInterface {
+            public function getStockItemBySku(string $productSku, ?int $scopeId = null): \Magento\CatalogInventory\Api\Data\StockItemInterface;
+            public function updateStockItemBySku(string $productSku, \Magento\CatalogInventory\Api\Data\StockItemInterface $stockItem): int;
+        }
+    ');
+}
+
 require dirname(__DIR__) . '/vendor/autoload.php';
