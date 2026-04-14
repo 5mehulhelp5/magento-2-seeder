@@ -635,4 +635,44 @@ if (!interface_exists(\Magento\CatalogInventory\Api\StockRegistryInterface::clas
     ');
 }
 
+if (!interface_exists(\Magento\Customer\Api\Data\AddressInterface::class)) {
+    eval('
+        namespace Magento\Customer\Api\Data;
+        interface AddressInterface {
+            public function getId();
+            public function setCustomerId($customerId);
+            public function setFirstname(string $firstname);
+            public function setLastname(string $lastname);
+            public function setStreet(array $street);
+            public function setCity(string $city);
+            public function setRegionId(int $regionId);
+            public function setPostcode(string $postcode);
+            public function setCountryId(string $countryId);
+            public function setTelephone(string $telephone);
+            public function setIsDefaultBilling(bool $isDefaultBilling);
+            public function setIsDefaultShipping(bool $isDefaultShipping);
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Customer\Api\Data\AddressInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Customer\Api\Data;
+        class AddressInterfaceFactory {
+            public function create(array $data = []): AddressInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Customer\Api\AddressRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Customer\Api;
+        interface AddressRepositoryInterface {
+            public function save(\Magento\Customer\Api\Data\AddressInterface $address): \Magento\Customer\Api\Data\AddressInterface;
+        }
+    ');
+}
+
 require dirname(__DIR__) . '/vendor/autoload.php';

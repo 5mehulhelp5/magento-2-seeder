@@ -6,7 +6,9 @@ namespace DavidLambauer\Seeder\EntityHandler;
 
 use DavidLambauer\Seeder\Api\EntityHandlerInterface;
 use Magento\Customer\Api\AccountManagementInterface;
+use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Api\Data\AddressInterfaceFactory;
 use Magento\Customer\Api\Data\CustomerInterfaceFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 
@@ -17,6 +19,8 @@ class CustomerHandler implements EntityHandlerInterface
         private readonly CustomerInterfaceFactory $customerFactory,
         private readonly CustomerRepositoryInterface $customerRepository,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly AddressRepositoryInterface $addressRepository,
+        private readonly AddressInterfaceFactory $addressFactory,
     ) {
     }
 
@@ -39,10 +43,28 @@ class CustomerHandler implements EntityHandlerInterface
             $customer->setDob($data['dob']);
         }
 
-        $this->accountManagement->createAccount(
+        $createdCustomer = $this->accountManagement->createAccount(
             $customer,
             $data['password'] ?? null,
         );
+
+        if (!empty($data['addresses'])) {
+            foreach ($data['addresses'] as $addressData) {
+                $address = $this->addressFactory->create();
+                $address->setCustomerId($createdCustomer->getId())
+                    ->setFirstname($addressData['firstname'] ?? $data['firstname'])
+                    ->setLastname($addressData['lastname'] ?? $data['lastname'])
+                    ->setStreet($addressData['street'] ?? ['123 Main St'])
+                    ->setCity($addressData['city'] ?? 'New York')
+                    ->setRegionId($addressData['region_id'] ?? 43)
+                    ->setPostcode($addressData['postcode'] ?? '10001')
+                    ->setCountryId($addressData['country_id'] ?? 'US')
+                    ->setTelephone($addressData['telephone'] ?? '555-0100')
+                    ->setIsDefaultBilling($addressData['default_billing'] ?? false)
+                    ->setIsDefaultShipping($addressData['default_shipping'] ?? false);
+                $this->addressRepository->save($address);
+            }
+        }
     }
 
     public function clean(): void
