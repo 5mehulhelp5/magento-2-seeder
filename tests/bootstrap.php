@@ -36,4 +36,21 @@ if (!class_exists(\Magento\Framework\App\Filesystem\DirectoryList::class)) {
     ');
 }
 
+if (!interface_exists(\Psr\Log\LoggerInterface::class)) {
+    eval('
+        namespace Psr\Log;
+        interface LoggerInterface {
+            public function emergency(string|\Stringable $message, array $context = []): void;
+            public function alert(string|\Stringable $message, array $context = []): void;
+            public function critical(string|\Stringable $message, array $context = []): void;
+            public function error(string|\Stringable $message, array $context = []): void;
+            public function warning(string|\Stringable $message, array $context = []): void;
+            public function notice(string|\Stringable $message, array $context = []): void;
+            public function info(string|\Stringable $message, array $context = []): void;
+            public function debug(string|\Stringable $message, array $context = []): void;
+            public function log($level, string|\Stringable $message, array $context = []): void;
+        }
+    ');
+}
+
 require dirname(__DIR__) . '/vendor/autoload.php';
