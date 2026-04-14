@@ -276,4 +276,99 @@ if (!interface_exists(\Magento\Customer\Api\CustomerRepositoryInterface::class))
     ');
 }
 
+if (!interface_exists(\Magento\Catalog\Api\Data\ProductInterface::class)) {
+    eval('
+        namespace Magento\Catalog\Api\Data;
+        interface ProductInterface {
+            public function getSku(): ?string;
+            public function setSku(string $sku): self;
+            public function getName(): ?string;
+            public function setName(string $name): self;
+            public function getPrice(): ?float;
+            public function setPrice(float $price): self;
+            public function getAttributeSetId(): ?int;
+            public function setAttributeSetId(int $attributeSetId): self;
+            public function getStatus(): ?int;
+            public function setStatus(int $status): self;
+            public function getVisibility(): ?int;
+            public function setVisibility(int $visibility): self;
+            public function getTypeId(): ?string;
+            public function setTypeId(string $typeId): self;
+            public function getWeight(): ?float;
+            public function setWeight(float $weight): self;
+            public function setCustomAttribute(string $attributeCode, $attributeValue): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Catalog\Api\Data\ProductInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Catalog\Api\Data;
+        class ProductInterfaceFactory {
+            public function create(array $data = []): ProductInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Catalog\Api\Data\ProductSearchResultsInterface::class)) {
+    eval('
+        namespace Magento\Catalog\Api\Data;
+        interface ProductSearchResultsInterface {
+            public function getItems(): array;
+            public function getTotalCount(): int;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Catalog\Api\ProductRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Catalog\Api;
+        interface ProductRepositoryInterface {
+            public function save(\Magento\Catalog\Api\Data\ProductInterface $product): \Magento\Catalog\Api\Data\ProductInterface;
+            public function get(string $sku): \Magento\Catalog\Api\Data\ProductInterface;
+            public function getById(int $productId): \Magento\Catalog\Api\Data\ProductInterface;
+            public function delete(\Magento\Catalog\Api\Data\ProductInterface $product): bool;
+            public function deleteById(string $sku): bool;
+            public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria): \Magento\Catalog\Api\Data\ProductSearchResultsInterface;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Catalog\Model\Product\Attribute\Source\Status::class)) {
+    eval('
+        namespace Magento\Catalog\Model\Product\Attribute\Source;
+        class Status {
+            public const STATUS_ENABLED = 1;
+            public const STATUS_DISABLED = 2;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Catalog\Model\Product\Type::class)) {
+    eval('
+        namespace Magento\Catalog\Model\Product;
+        class Type {
+            public const TYPE_SIMPLE = "simple";
+            public const TYPE_BUNDLE = "bundle";
+            public const TYPE_CONFIGURABLE = "configurable";
+            public const TYPE_GROUPED = "grouped";
+            public const TYPE_VIRTUAL = "virtual";
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Catalog\Model\Product\Visibility::class)) {
+    eval('
+        namespace Magento\Catalog\Model\Product;
+        class Visibility {
+            public const VISIBILITY_NOT_VISIBLE = 1;
+            public const VISIBILITY_IN_CATALOG = 2;
+            public const VISIBILITY_IN_SEARCH = 3;
+            public const VISIBILITY_BOTH = 4;
+        }
+    ');
+}
+
 require dirname(__DIR__) . '/vendor/autoload.php';
