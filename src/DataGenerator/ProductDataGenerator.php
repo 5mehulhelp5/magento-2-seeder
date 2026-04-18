@@ -33,6 +33,7 @@ class ProductDataGenerator implements DataGeneratorInterface
         }
 
         return [
+            'product_type' => 'simple',
             'sku' => 'SEED-' . $faker->unique()->numberBetween(10000, 99999),
             'name' => $name,
             'price' => $faker->randomFloat(2, 5.00, 500.00),

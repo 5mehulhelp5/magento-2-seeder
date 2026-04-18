@@ -54,6 +54,18 @@ final class ProductDataGeneratorTest extends TestCase
         $this->assertGreaterThan(0, $data['price']);
     }
 
+    public function test_generate_includes_product_type_simple_by_default(): void
+    {
+        $faker = Factory::create('en_US');
+        $registry = new GeneratedDataRegistry();
+        $generator = new ProductDataGenerator();
+
+        $data = $generator->generate($faker, $registry);
+
+        $this->assertArrayHasKey('product_type', $data);
+        $this->assertSame('simple', $data['product_type']);
+    }
+
     public function test_generate_assigns_category_from_registry(): void
     {
         $faker = Factory::create('en_US');
