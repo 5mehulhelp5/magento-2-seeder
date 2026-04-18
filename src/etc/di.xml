@@ -41,6 +41,20 @@
         </arguments>
     </type>
 
+    <!-- Order State Transition Pool -->
+    <type name="RunAsRoot\Seeder\EntityHandler\Order\StateTransitionPool">
+        <arguments>
+            <argument name="transitions" xsi:type="array">
+                <item name="new" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\NewTransition</item>
+                <item name="processing" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\ProcessingTransition</item>
+                <item name="complete" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\CompleteTransition</item>
+                <item name="canceled" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\CanceledTransition</item>
+                <item name="holded" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\HoldedTransition</item>
+                <item name="closed" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\ClosedTransition</item>
+            </argument>
+        </arguments>
+    </type>
+
     <!-- CLI Command Registration -->
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
