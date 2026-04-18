@@ -40,6 +40,14 @@ final class ProcessingTransitionTest extends TestCase
             ->method('setIsInProcess')
             ->with(true)
             ->willReturnSelf();
+        $order->expects($this->once())
+            ->method('setState')
+            ->with('processing')
+            ->willReturnSelf();
+        $order->expects($this->once())
+            ->method('setStatus')
+            ->with('processing')
+            ->willReturnSelf();
 
         $invoiceService->expects($this->once())
             ->method('prepareInvoice')
@@ -59,7 +67,7 @@ final class ProcessingTransitionTest extends TestCase
             ->willReturnSelf();
         $transaction->expects($this->once())->method('save')->willReturnSelf();
 
-        $orderRepository->expects($this->atLeastOnce())
+        $orderRepository->expects($this->exactly(2))
             ->method('save')
             ->with($order)
             ->willReturn($order);

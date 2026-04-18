@@ -57,6 +57,15 @@ final class ClosedTransitionTest extends TestCase
             ->willReturnSelf();
         $order->method('getEntityId')->willReturn('4242');
 
+        $refreshedOrder->expects($this->once())
+            ->method('setState')
+            ->with('closed')
+            ->willReturnSelf();
+        $refreshedOrder->expects($this->once())
+            ->method('setStatus')
+            ->with('closed')
+            ->willReturnSelf();
+
         $invoiceService->expects($this->once())
             ->method('prepareInvoice')
             ->with($order)
@@ -75,10 +84,18 @@ final class ClosedTransitionTest extends TestCase
             ->willReturnSelf();
         $transaction->expects($this->once())->method('save')->willReturnSelf();
 
-        $orderRepository->expects($this->atLeastOnce())
+        $orderRepository->expects($this->exactly(2))
             ->method('save')
-            ->with($order)
-            ->willReturn($order);
+            ->willReturnCallback(function ($saved) use ($order, $refreshedOrder) {
+                static $calls = 0;
+                $calls++;
+                if ($calls === 1) {
+                    $this->assertSame($order, $saved);
+                } else {
+                    $this->assertSame($refreshedOrder, $saved);
+                }
+                return $saved;
+            });
         $orderRepository->expects($this->once())
             ->method('get')
             ->with(4242)

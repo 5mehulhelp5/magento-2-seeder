@@ -43,5 +43,9 @@ class ProcessingTransition implements StateTransitionInterface
         $transaction->addObject($invoice)->addObject($order)->save();
 
         $this->orderRepository->save($order);
+
+        // Magento observer chain may reset state during save; reassert explicitly.
+        $order->setState('processing')->setStatus('processing');
+        $this->orderRepository->save($order);
     }
 }

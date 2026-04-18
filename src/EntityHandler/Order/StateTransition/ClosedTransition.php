@@ -49,9 +49,13 @@ class ClosedTransition implements StateTransitionInterface
         $this->orderRepository->save($order);
 
         // Re-fetch so the creditmemo sees the post-invoice order state
-        $order = $this->orderRepository->get((int) $order->getEntityId());
+        $freshOrder = $this->orderRepository->get((int) $order->getEntityId());
 
-        $creditmemo = $this->creditmemoFactory->createByOrder($order);
+        $creditmemo = $this->creditmemoFactory->createByOrder($freshOrder);
         $this->creditmemoManagement->refund($creditmemo, true);
+
+        // Magento observer chain may reset state during save; reassert explicitly.
+        $freshOrder->setState('closed')->setStatus('closed');
+        $this->orderRepository->save($freshOrder);
     }
 }

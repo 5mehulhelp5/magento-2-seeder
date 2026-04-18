@@ -56,6 +56,10 @@ class CompleteTransition implements StateTransitionInterface
             ->save();
 
         $this->orderRepository->save($order);
+
+        // Magento observer chain may reset state during save; reassert explicitly.
+        $order->setState('complete')->setStatus('complete');
+        $this->orderRepository->save($order);
     }
 
     /**
