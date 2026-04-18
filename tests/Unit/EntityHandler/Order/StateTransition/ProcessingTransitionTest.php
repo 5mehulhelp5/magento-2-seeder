@@ -6,6 +6,7 @@ namespace RunAsRoot\Seeder\Test\Unit\EntityHandler\Order\StateTransition;
 
 use Magento\Framework\DB\Transaction;
 use Magento\Framework\DB\TransactionFactory;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Service\InvoiceService;
@@ -18,8 +19,9 @@ final class ProcessingTransitionTest extends TestCase
     {
         $invoiceService = $this->createMock(InvoiceService::class);
         $transactionFactory = $this->createMock(TransactionFactory::class);
+        $orderRepository = $this->createMock(OrderRepositoryInterface::class);
 
-        $transition = new ProcessingTransition($invoiceService, $transactionFactory);
+        $transition = new ProcessingTransition($invoiceService, $transactionFactory, $orderRepository);
 
         $this->assertSame('processing', $transition->getState());
     }
@@ -28,11 +30,16 @@ final class ProcessingTransitionTest extends TestCase
     {
         $invoiceService = $this->createMock(InvoiceService::class);
         $transactionFactory = $this->createMock(TransactionFactory::class);
+        $orderRepository = $this->createMock(OrderRepositoryInterface::class);
         $order = $this->createMock(Order::class);
         $invoice = $this->createMock(Invoice::class);
         $transaction = $this->createMock(Transaction::class);
 
         $order->expects($this->once())->method('canInvoice')->willReturn(true);
+        $order->expects($this->atLeastOnce())
+            ->method('setIsInProcess')
+            ->with(true)
+            ->willReturnSelf();
 
         $invoiceService->expects($this->once())
             ->method('prepareInvoice')
@@ -52,7 +59,12 @@ final class ProcessingTransitionTest extends TestCase
             ->willReturnSelf();
         $transaction->expects($this->once())->method('save')->willReturnSelf();
 
-        $transition = new ProcessingTransition($invoiceService, $transactionFactory);
+        $orderRepository->expects($this->atLeastOnce())
+            ->method('save')
+            ->with($order)
+            ->willReturn($order);
+
+        $transition = new ProcessingTransition($invoiceService, $transactionFactory, $orderRepository);
         $transition->apply($order, []);
     }
 
@@ -60,14 +72,16 @@ final class ProcessingTransitionTest extends TestCase
     {
         $invoiceService = $this->createMock(InvoiceService::class);
         $transactionFactory = $this->createMock(TransactionFactory::class);
+        $orderRepository = $this->createMock(OrderRepositoryInterface::class);
         $order = $this->createMock(Order::class);
 
         $order->expects($this->once())->method('canInvoice')->willReturn(false);
 
         $invoiceService->expects($this->never())->method('prepareInvoice');
         $transactionFactory->expects($this->never())->method('create');
+        $orderRepository->expects($this->never())->method('save');
 
-        $transition = new ProcessingTransition($invoiceService, $transactionFactory);
+        $transition = new ProcessingTransition($invoiceService, $transactionFactory, $orderRepository);
         $transition->apply($order, []);
     }
 }

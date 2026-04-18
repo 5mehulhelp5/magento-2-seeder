@@ -6,6 +6,7 @@ namespace RunAsRoot\Seeder\EntityHandler\Order\StateTransition;
 
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Service\InvoiceService;
 use RunAsRoot\Seeder\EntityHandler\Order\StateTransitionInterface;
@@ -15,6 +16,7 @@ class ProcessingTransition implements StateTransitionInterface
     public function __construct(
         private readonly InvoiceService $invoiceService,
         private readonly TransactionFactory $transactionFactory,
+        private readonly OrderRepositoryInterface $orderRepository,
     ) {
     }
 
@@ -33,7 +35,13 @@ class ProcessingTransition implements StateTransitionInterface
         $invoice->setRequestedCaptureCase(Invoice::CAPTURE_OFFLINE);
         $invoice->register();
 
+        if (method_exists($order, 'setIsInProcess')) {
+            $order->setIsInProcess(true);
+        }
+
         $transaction = $this->transactionFactory->create();
         $transaction->addObject($invoice)->addObject($order)->save();
+
+        $this->orderRepository->save($order);
     }
 }

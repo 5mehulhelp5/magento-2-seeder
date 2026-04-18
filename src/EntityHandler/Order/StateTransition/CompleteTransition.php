@@ -6,6 +6,7 @@ namespace RunAsRoot\Seeder\EntityHandler\Order\StateTransition;
 
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\ShipmentFactory;
 use Magento\Sales\Model\Service\InvoiceService;
@@ -17,6 +18,7 @@ class CompleteTransition implements StateTransitionInterface
         private readonly InvoiceService $invoiceService,
         private readonly ShipmentFactory $shipmentFactory,
         private readonly TransactionFactory $transactionFactory,
+        private readonly OrderRepositoryInterface $orderRepository,
     ) {
     }
 
@@ -36,6 +38,10 @@ class CompleteTransition implements StateTransitionInterface
         $invoice->setRequestedCaptureCase(Invoice::CAPTURE_OFFLINE);
         $invoice->register();
 
+        if (method_exists($order, 'setIsInProcess')) {
+            $order->setIsInProcess(true);
+        }
+
         // 2. Shipment for all items, full qty
         $itemsQty = $this->buildItemsQtyMap($order);
         $shipment = $this->shipmentFactory->create($order, $itemsQty);
@@ -48,6 +54,8 @@ class CompleteTransition implements StateTransitionInterface
             ->addObject($shipment)
             ->addObject($order)
             ->save();
+
+        $this->orderRepository->save($order);
     }
 
     /**

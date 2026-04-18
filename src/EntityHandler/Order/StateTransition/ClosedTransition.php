@@ -7,6 +7,7 @@ namespace RunAsRoot\Seeder\EntityHandler\Order\StateTransition;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Sales\Api\CreditmemoManagementInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\CreditmemoFactory;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Service\InvoiceService;
@@ -19,6 +20,7 @@ class ClosedTransition implements StateTransitionInterface
         private readonly TransactionFactory $transactionFactory,
         private readonly CreditmemoFactory $creditmemoFactory,
         private readonly CreditmemoManagementInterface $creditmemoManagement,
+        private readonly OrderRepositoryInterface $orderRepository,
     ) {
     }
 
@@ -37,8 +39,17 @@ class ClosedTransition implements StateTransitionInterface
         $invoice->setRequestedCaptureCase(Invoice::CAPTURE_OFFLINE);
         $invoice->register();
 
+        if (method_exists($order, 'setIsInProcess')) {
+            $order->setIsInProcess(true);
+        }
+
         $transaction = $this->transactionFactory->create();
         $transaction->addObject($invoice)->addObject($order)->save();
+
+        $this->orderRepository->save($order);
+
+        // Re-fetch so the creditmemo sees the post-invoice order state
+        $order = $this->orderRepository->get((int) $order->getEntityId());
 
         $creditmemo = $this->creditmemoFactory->createByOrder($order);
         $this->creditmemoManagement->refund($creditmemo, true);

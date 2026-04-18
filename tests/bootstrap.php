@@ -667,6 +667,7 @@ if (!class_exists(\Magento\Sales\Model\Order::class)) {
             public function cancel(): self { return $this; }
             public function setState(string $state): self { return $this; }
             public function setStatus(string $status): self { return $this; }
+            public function setIsInProcess(bool $flag): self { return $this; }
             public function canInvoice(): bool { return true; }
             public function getAllItems(): array { return []; }
         }

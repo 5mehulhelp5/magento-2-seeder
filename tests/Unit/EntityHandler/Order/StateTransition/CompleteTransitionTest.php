@@ -6,6 +6,7 @@ namespace RunAsRoot\Seeder\Test\Unit\EntityHandler\Order\StateTransition;
 
 use Magento\Framework\DB\Transaction;
 use Magento\Framework\DB\TransactionFactory;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Item;
@@ -22,8 +23,14 @@ final class CompleteTransitionTest extends TestCase
         $invoiceService = $this->createMock(InvoiceService::class);
         $shipmentFactory = $this->createMock(ShipmentFactory::class);
         $transactionFactory = $this->createMock(TransactionFactory::class);
+        $orderRepository = $this->createMock(OrderRepositoryInterface::class);
 
-        $transition = new CompleteTransition($invoiceService, $shipmentFactory, $transactionFactory);
+        $transition = new CompleteTransition(
+            $invoiceService,
+            $shipmentFactory,
+            $transactionFactory,
+            $orderRepository
+        );
 
         $this->assertSame('complete', $transition->getState());
     }
@@ -33,6 +40,7 @@ final class CompleteTransitionTest extends TestCase
         $invoiceService = $this->createMock(InvoiceService::class);
         $shipmentFactory = $this->createMock(ShipmentFactory::class);
         $transactionFactory = $this->createMock(TransactionFactory::class);
+        $orderRepository = $this->createMock(OrderRepositoryInterface::class);
         $order = $this->createMock(Order::class);
         $invoice = $this->createMock(Invoice::class);
         $shipment = $this->createMock(Shipment::class);
@@ -48,6 +56,10 @@ final class CompleteTransitionTest extends TestCase
 
         $order->expects($this->once())->method('canInvoice')->willReturn(true);
         $order->expects($this->once())->method('getAllItems')->willReturn([$item1, $item2]);
+        $order->expects($this->atLeastOnce())
+            ->method('setIsInProcess')
+            ->with(true)
+            ->willReturnSelf();
 
         $invoiceService->expects($this->once())
             ->method('prepareInvoice')
@@ -74,7 +86,17 @@ final class CompleteTransitionTest extends TestCase
             ->willReturnSelf();
         $transaction->expects($this->once())->method('save')->willReturnSelf();
 
-        $transition = new CompleteTransition($invoiceService, $shipmentFactory, $transactionFactory);
+        $orderRepository->expects($this->atLeastOnce())
+            ->method('save')
+            ->with($order)
+            ->willReturn($order);
+
+        $transition = new CompleteTransition(
+            $invoiceService,
+            $shipmentFactory,
+            $transactionFactory,
+            $orderRepository
+        );
         $transition->apply($order, []);
     }
 
@@ -83,6 +105,7 @@ final class CompleteTransitionTest extends TestCase
         $invoiceService = $this->createMock(InvoiceService::class);
         $shipmentFactory = $this->createMock(ShipmentFactory::class);
         $transactionFactory = $this->createMock(TransactionFactory::class);
+        $orderRepository = $this->createMock(OrderRepositoryInterface::class);
         $order = $this->createMock(Order::class);
 
         $order->expects($this->once())->method('canInvoice')->willReturn(false);
@@ -90,8 +113,14 @@ final class CompleteTransitionTest extends TestCase
         $invoiceService->expects($this->never())->method('prepareInvoice');
         $shipmentFactory->expects($this->never())->method('create');
         $transactionFactory->expects($this->never())->method('create');
+        $orderRepository->expects($this->never())->method('save');
 
-        $transition = new CompleteTransition($invoiceService, $shipmentFactory, $transactionFactory);
+        $transition = new CompleteTransition(
+            $invoiceService,
+            $shipmentFactory,
+            $transactionFactory,
+            $orderRepository
+        );
         $transition->apply($order, []);
     }
 }

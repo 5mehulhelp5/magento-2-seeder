@@ -7,6 +7,7 @@ namespace RunAsRoot\Seeder\Test\Unit\EntityHandler\Order\StateTransition;
 use Magento\Framework\DB\Transaction;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Sales\Api\CreditmemoManagementInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\CreditmemoFactory;
@@ -23,12 +24,14 @@ final class ClosedTransitionTest extends TestCase
         $transactionFactory = $this->createMock(TransactionFactory::class);
         $creditmemoFactory = $this->createMock(CreditmemoFactory::class);
         $creditmemoManagement = $this->createMock(CreditmemoManagementInterface::class);
+        $orderRepository = $this->createMock(OrderRepositoryInterface::class);
 
         $transition = new ClosedTransition(
             $invoiceService,
             $transactionFactory,
             $creditmemoFactory,
-            $creditmemoManagement
+            $creditmemoManagement,
+            $orderRepository
         );
 
         $this->assertSame('closed', $transition->getState());
@@ -40,12 +43,19 @@ final class ClosedTransitionTest extends TestCase
         $transactionFactory = $this->createMock(TransactionFactory::class);
         $creditmemoFactory = $this->createMock(CreditmemoFactory::class);
         $creditmemoManagement = $this->createMock(CreditmemoManagementInterface::class);
+        $orderRepository = $this->createMock(OrderRepositoryInterface::class);
         $order = $this->createMock(Order::class);
+        $refreshedOrder = $this->createMock(Order::class);
         $invoice = $this->createMock(Invoice::class);
         $transaction = $this->createMock(Transaction::class);
         $creditmemo = $this->createMock(Creditmemo::class);
 
         $order->expects($this->once())->method('canInvoice')->willReturn(true);
+        $order->expects($this->atLeastOnce())
+            ->method('setIsInProcess')
+            ->with(true)
+            ->willReturnSelf();
+        $order->method('getEntityId')->willReturn('4242');
 
         $invoiceService->expects($this->once())
             ->method('prepareInvoice')
@@ -65,9 +75,18 @@ final class ClosedTransitionTest extends TestCase
             ->willReturnSelf();
         $transaction->expects($this->once())->method('save')->willReturnSelf();
 
+        $orderRepository->expects($this->atLeastOnce())
+            ->method('save')
+            ->with($order)
+            ->willReturn($order);
+        $orderRepository->expects($this->once())
+            ->method('get')
+            ->with(4242)
+            ->willReturn($refreshedOrder);
+
         $creditmemoFactory->expects($this->once())
             ->method('createByOrder')
-            ->with($order)
+            ->with($refreshedOrder)
             ->willReturn($creditmemo);
 
         $creditmemoManagement->expects($this->once())
@@ -79,7 +98,8 @@ final class ClosedTransitionTest extends TestCase
             $invoiceService,
             $transactionFactory,
             $creditmemoFactory,
-            $creditmemoManagement
+            $creditmemoManagement,
+            $orderRepository
         );
         $transition->apply($order, []);
     }
@@ -90,6 +110,7 @@ final class ClosedTransitionTest extends TestCase
         $transactionFactory = $this->createMock(TransactionFactory::class);
         $creditmemoFactory = $this->createMock(CreditmemoFactory::class);
         $creditmemoManagement = $this->createMock(CreditmemoManagementInterface::class);
+        $orderRepository = $this->createMock(OrderRepositoryInterface::class);
         $order = $this->createMock(Order::class);
 
         $order->expects($this->once())->method('canInvoice')->willReturn(false);
@@ -98,12 +119,14 @@ final class ClosedTransitionTest extends TestCase
         $transactionFactory->expects($this->never())->method('create');
         $creditmemoFactory->expects($this->never())->method('createByOrder');
         $creditmemoManagement->expects($this->never())->method('refund');
+        $orderRepository->expects($this->never())->method('save');
 
         $transition = new ClosedTransition(
             $invoiceService,
             $transactionFactory,
             $creditmemoFactory,
-            $creditmemoManagement
+            $creditmemoManagement,
+            $orderRepository
         );
         $transition->apply($order, []);
     }
