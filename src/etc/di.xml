@@ -33,6 +33,10 @@
         <arguments>
             <argument name="builders" xsi:type="array">
                 <item name="simple" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\SimpleBuilder</item>
+                <item name="configurable" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\ConfigurableBuilder</item>
+                <item name="bundle" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\BundleBuilder</item>
+                <item name="grouped" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\GroupedBuilder</item>
+                <item name="downloadable" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\DownloadableBuilder</item>
             </argument>
         </arguments>
     </type>
