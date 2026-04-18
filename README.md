@@ -241,6 +241,46 @@ Add your own data generators via `di.xml`:
 
 Your generator must implement `RunAsRoot\Seeder\Api\DataGeneratorInterface`.
 
+## Order States
+
+Orders are generated across the real Magento lifecycle states. Plain `--generate=order:N` produces a weighted mix; dotted subtypes force a specific state.
+
+### CLI
+
+```
+bin/magento db:seed --generate=order:100
+bin/magento db:seed --generate=order.complete:50,order.canceled:10
+bin/magento db:seed --generate=order:100,order.holded:5  # mix + force
+```
+
+### Default state weights
+
+| State        | Weight |
+|--------------|-------:|
+| new          |    15% |
+| processing   |    25% |
+| complete     |    40% |
+| canceled     |    10% |
+| holded       |     5% |
+| closed       |     5% |
+
+Change weights in `src/DataGenerator/OrderDataGenerator.php` — `STATE_WEIGHTS` constant. States `pending_payment` and `payment_review` are intentionally skipped; they require payment-gateway plumbing and add little dev-data value.
+
+### Per-state behavior
+
+- **new**: default state after `CartManagementInterface::placeOrder`. No additional action.
+- **processing**: order is invoiced offline (`InvoiceService::prepareInvoice` + `register` with `CAPTURE_OFFLINE`).
+- **complete**: invoice (as above), then full shipment via `ShipmentFactory::create($order, $itemQtyMap)` + `register`.
+- **canceled**: `$order->cancel()`.
+- **holded**: `$order->hold()`.
+- **closed**: invoice, then offline refund via `CreditmemoFactory::createByOrder` + `CreditmemoManagementInterface::refund($memo, true)`.
+
+After each invoice-based transition, the order state is explicitly set and saved a second time because some Magento observer chains reset the state during the transaction save. Without this, invoiced orders would remain stuck at `new`.
+
+### Order items
+
+Seeded orders only use **simple** products as cart items — bundles, configurables, grouped, and downloadables require per-cart option selections that would complicate the seeder. `OrderDataGenerator` declares `product.simple` as its product dependency, so the dependency resolver always produces the right type.
+
 ## License
 
 MIT
