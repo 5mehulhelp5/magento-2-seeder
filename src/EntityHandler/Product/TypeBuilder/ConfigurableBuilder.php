@@ -19,6 +19,7 @@ use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderInterface;
 
 class ConfigurableBuilder implements TypeBuilderInterface
 {
+    private const TYPE_CONFIGURABLE = 'configurable';
     private const COMBINATIONS_STASH_KEY = '_seeder_configurable_combinations';
     private const COLOR_LIMIT = 3;
     private const SIZE_LIMIT = 2;
@@ -38,12 +39,12 @@ class ConfigurableBuilder implements TypeBuilderInterface
 
     public function getType(): string
     {
-        return Type::TYPE_CONFIGURABLE;
+        return self::TYPE_CONFIGURABLE;
     }
 
     public function build(ProductInterface $product, array $data): void
     {
-        $product->setTypeId(Type::TYPE_CONFIGURABLE);
+        $product->setTypeId(self::TYPE_CONFIGURABLE);
 
         $colorAttr = $this->eavConfig->getAttribute('catalog_product', 'color');
         $sizeAttr = $this->eavConfig->getAttribute('catalog_product', 'size');

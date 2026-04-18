@@ -98,7 +98,7 @@ class ProductHandler implements EntityHandlerInterface
 
         $savedProduct = $this->productRepository->save($product);
 
-        $builder->afterSave($product, $data);
+        $builder->afterSave($savedProduct, $data);
 
         $stockItem = $this->stockRegistry->getStockItemBySku($data['sku']);
         $stockItem->setQty($data['qty'] ?? 100);

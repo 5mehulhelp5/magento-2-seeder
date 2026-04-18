@@ -268,7 +268,14 @@ final class ProductHandlerTest extends TestCase
         $factory = $this->createMock(ProductInterfaceFactory::class);
         $factory->method('create')->willReturn($product);
 
-        $handler = $this->createHandler(productFactory: $factory, typeBuilderPool: $pool);
+        $repository = $this->createMock(ProductRepositoryInterface::class);
+        $repository->method('save')->willReturn($product);
+
+        $handler = $this->createHandler(
+            productFactory: $factory,
+            productRepository: $repository,
+            typeBuilderPool: $pool,
+        );
 
         $handler->create(['sku' => 'CFG-001', 'name' => 'X', 'price' => 10.0, 'product_type' => 'configurable']);
     }

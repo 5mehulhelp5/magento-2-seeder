@@ -7,7 +7,6 @@ namespace RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\Data\ProductLinkInterfaceFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Catalog\Model\Product\Type;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Psr\Log\LoggerInterface;
@@ -16,6 +15,8 @@ use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 
 class GroupedBuilder implements TypeBuilderInterface
 {
+    private const TYPE_GROUPED = 'grouped';
+    private const TYPE_SIMPLE = 'simple';
     private const MAX_LINKS = 5;
     private const LINK_TYPE_ASSOCIATED = 'associated';
     private const LINKED_PRODUCT_TYPE = 'simple';
@@ -32,12 +33,12 @@ class GroupedBuilder implements TypeBuilderInterface
 
     public function getType(): string
     {
-        return Type::TYPE_GROUPED;
+        return self::TYPE_GROUPED;
     }
 
     public function build(ProductInterface $product, array $data): void
     {
-        $product->setTypeId(Type::TYPE_GROUPED);
+        $product->setTypeId(self::TYPE_GROUPED);
     }
 
     public function afterSave(ProductInterface $parent, array $data): void
@@ -109,7 +110,7 @@ class GroupedBuilder implements TypeBuilderInterface
 
         $typeFilter = $this->filterBuilder
             ->setField('type_id')
-            ->setValue(Type::TYPE_SIMPLE)
+            ->setValue(self::TYPE_SIMPLE)
             ->setConditionType('eq')
             ->create();
 

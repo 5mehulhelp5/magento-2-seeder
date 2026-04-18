@@ -419,8 +419,6 @@ if (!class_exists(\Magento\Catalog\Model\Product\Type::class)) {
         class Type {
             public const TYPE_SIMPLE = "simple";
             public const TYPE_BUNDLE = "bundle";
-            public const TYPE_CONFIGURABLE = "configurable";
-            public const TYPE_GROUPED = "grouped";
             public const TYPE_VIRTUAL = "virtual";
         }
     ');
