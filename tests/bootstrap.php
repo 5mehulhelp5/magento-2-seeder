@@ -656,6 +656,21 @@ if (!interface_exists(\Magento\Sales\Api\Data\OrderInterface::class)) {
     ');
 }
 
+if (!class_exists(\Magento\Sales\Model\Order::class)) {
+    eval('
+        namespace Magento\Sales\Model;
+        class Order implements \Magento\Sales\Api\Data\OrderInterface {
+            public function getEntityId(): ?string { return null; }
+            public function getIncrementId(): ?string { return null; }
+            public function getState(): ?string { return null; }
+            public function hold(): self { return $this; }
+            public function cancel(): self { return $this; }
+            public function setState(string $state): self { return $this; }
+            public function setStatus(string $status): self { return $this; }
+        }
+    ');
+}
+
 if (!interface_exists(\Magento\Sales\Api\Data\OrderSearchResultInterface::class)) {
     eval('
         namespace Magento\Sales\Api\Data;
