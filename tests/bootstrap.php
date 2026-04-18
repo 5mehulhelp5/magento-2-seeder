@@ -667,6 +667,7 @@ if (!class_exists(\Magento\Sales\Model\Order::class)) {
             public function cancel(): self { return $this; }
             public function setState(string $state): self { return $this; }
             public function setStatus(string $status): self { return $this; }
+            public function canInvoice(): bool { return true; }
         }
     ');
 }
@@ -1028,6 +1029,51 @@ if (!interface_exists(\Magento\Downloadable\Api\LinkRepositoryInterface::class))
         namespace Magento\Downloadable\Api;
         interface LinkRepositoryInterface {
             public function save(string $sku, \Magento\Downloadable\Api\Data\LinkInterface $link, bool $isGlobalScopeContent = true): int;
+        }
+    ');
+}
+
+// Invoice / Transaction stubs for order state transitions
+
+if (!class_exists(\Magento\Sales\Model\Order\Invoice::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class Invoice {
+            public const CAPTURE_OFFLINE = "offline";
+            public function setRequestedCaptureCase(string $case): self { return $this; }
+            public function register(): self { return $this; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Service\InvoiceService::class)) {
+    eval('
+        namespace Magento\Sales\Model\Service;
+        class InvoiceService {
+            public function prepareInvoice(\Magento\Sales\Api\Data\OrderInterface $order, array $qtys = []): \Magento\Sales\Model\Order\Invoice {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Framework\DB\Transaction::class)) {
+    eval('
+        namespace Magento\Framework\DB;
+        class Transaction {
+            public function addObject($object): self { return $this; }
+            public function save(): self { return $this; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Framework\DB\TransactionFactory::class)) {
+    eval('
+        namespace Magento\Framework\DB;
+        class TransactionFactory {
+            public function create(array $data = []): \Magento\Framework\DB\Transaction {
+                throw new \RuntimeException("Stub: not implemented");
+            }
         }
     ');
 }
