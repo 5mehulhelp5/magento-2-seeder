@@ -1109,4 +1109,33 @@ if (!class_exists(\Magento\Sales\Model\Order\ShipmentFactory::class)) {
     ');
 }
 
+if (!class_exists(\Magento\Sales\Model\Order\Creditmemo::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class Creditmemo {
+            public function getId() { return null; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Order\CreditmemoFactory::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class CreditmemoFactory {
+            public function createByOrder(\Magento\Sales\Api\Data\OrderInterface $order, array $data = []): \Magento\Sales\Model\Order\Creditmemo {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Sales\Api\CreditmemoManagementInterface::class)) {
+    eval('
+        namespace Magento\Sales\Api;
+        interface CreditmemoManagementInterface {
+            public function refund(\Magento\Sales\Model\Order\Creditmemo $creditmemo, bool $offlineRequested = false): \Magento\Sales\Model\Order\Creditmemo;
+        }
+    ');
+}
+
 require dirname(__DIR__) . '/vendor/autoload.php';
