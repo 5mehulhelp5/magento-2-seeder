@@ -651,6 +651,7 @@ if (!interface_exists(\Magento\Sales\Api\Data\OrderInterface::class)) {
         interface OrderInterface {
             public function getEntityId(): ?string;
             public function getIncrementId(): ?string;
+            public function getState(): ?string;
         }
     ');
 }
