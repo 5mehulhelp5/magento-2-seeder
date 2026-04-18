@@ -668,6 +668,17 @@ if (!class_exists(\Magento\Sales\Model\Order::class)) {
             public function setState(string $state): self { return $this; }
             public function setStatus(string $status): self { return $this; }
             public function canInvoice(): bool { return true; }
+            public function getAllItems(): array { return []; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Order\Item::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class Item {
+            public function getItemId() { return null; }
+            public function getQtyOrdered() { return 0.0; }
         }
     ');
 }
@@ -1072,6 +1083,26 @@ if (!class_exists(\Magento\Framework\DB\TransactionFactory::class)) {
         namespace Magento\Framework\DB;
         class TransactionFactory {
             public function create(array $data = []): \Magento\Framework\DB\Transaction {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Order\Shipment::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class Shipment {
+            public function register(): self { return $this; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Order\ShipmentFactory::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class ShipmentFactory {
+            public function create(\Magento\Sales\Api\Data\OrderInterface $order, array $items = [], $tracks = []): \Magento\Sales\Model\Order\Shipment {
                 throw new \RuntimeException("Stub: not implemented");
             }
         }
