@@ -393,6 +393,8 @@ if (!class_exists(\Magento\Catalog\Model\Product::class)) {
             public function addImageToMediaGallery($file, $mediaAttribute = null, $move = false, $exclude = true): self { return $this; }
             public function setStockData(array $stockData): self { return $this; }
             public function setWebsiteIds(array $websiteIds): self { return $this; }
+            public function setData($key, $value = null): self { return $this; }
+            public function getData($key = "", $index = null) { return null; }
         }
     ');
 }
@@ -733,6 +735,106 @@ if (!interface_exists(\Magento\Customer\Api\AddressRepositoryInterface::class)) 
         namespace Magento\Customer\Api;
         interface AddressRepositoryInterface {
             public function save(\Magento\Customer\Api\Data\AddressInterface $address): \Magento\Customer\Api\Data\AddressInterface;
+        }
+    ');
+}
+
+// EAV stubs for configurable products
+
+if (!interface_exists(\Magento\Eav\Api\Data\AttributeOptionInterface::class)) {
+    eval('
+        namespace Magento\Eav\Api\Data;
+        interface AttributeOptionInterface {
+            public function getValue(): ?string;
+            public function getLabel(): ?string;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Eav\Api\Data\AttributeInterface::class)) {
+    eval('
+        namespace Magento\Eav\Api\Data;
+        interface AttributeInterface {
+            public function getAttributeId(): ?int;
+            public function getAttributeCode(): ?string;
+            public function getDefaultFrontendLabel(): ?string;
+            public function getFrontendLabel(): ?string;
+            public function getOptions(): array;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Eav\Model\Config::class)) {
+    eval('
+        namespace Magento\Eav\Model;
+        class Config {
+            public function getAttribute(string $entityType, string $attributeCode): \Magento\Eav\Api\Data\AttributeInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+// ConfigurableProduct stubs
+
+if (!interface_exists(\Magento\ConfigurableProduct\Api\LinkManagementInterface::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api;
+        interface LinkManagementInterface {
+            public function setChildren(string $sku, array $childSkus): bool;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\ConfigurableProduct\Api\Data\OptionValueInterface::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api\Data;
+        interface OptionValueInterface {
+            public function setValueIndex($id): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\ConfigurableProduct\Api\Data\OptionValueInterfaceFactory::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api\Data;
+        class OptionValueInterfaceFactory {
+            public function create(array $data = []): OptionValueInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\ConfigurableProduct\Api\Data\OptionInterface::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api\Data;
+        interface OptionInterface {
+            public function setAttributeId(int $id): self;
+            public function setLabel(string $label): self;
+            public function setPosition(int $pos): self;
+            public function setIsUseDefault(bool $b): self;
+            public function setValues(array $values): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\ConfigurableProduct\Api\Data\OptionInterfaceFactory::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api\Data;
+        class OptionInterfaceFactory {
+            public function create(array $data = []): OptionInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\ConfigurableProduct\Api\OptionRepositoryInterface::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api;
+        interface OptionRepositoryInterface {
+            public function save(string $sku, \Magento\ConfigurableProduct\Api\Data\OptionInterface $option): int;
         }
     ');
 }
