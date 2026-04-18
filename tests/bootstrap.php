@@ -330,6 +330,7 @@ if (!interface_exists(\Magento\Catalog\Api\Data\ProductInterface::class)) {
             public function getWeight(): ?float;
             public function setWeight(float $weight): self;
             public function setCustomAttribute(string $attributeCode, $attributeValue): self;
+            public function setProductLinks(array $links): self;
         }
     ');
 }
@@ -391,6 +392,7 @@ if (!class_exists(\Magento\Catalog\Model\Product::class)) {
             public function getWeight(): ?float { return null; }
             public function setWeight(float $weight): self { return $this; }
             public function setCustomAttribute(string $attributeCode, $attributeValue): self { return $this; }
+            public function setProductLinks(array $links): self { return $this; }
             public function addImageToMediaGallery($file, $mediaAttribute = null, $move = false, $exclude = true): self { return $this; }
             public function setStockData(array $stockData): self { return $this; }
             public function setWebsiteIds(array $websiteIds): self { return $this; }
@@ -925,6 +927,30 @@ if (!class_exists(\Magento\Framework\Api\FilterBuilder::class)) {
             public function setValue($value): self { return $this; }
             public function setConditionType(string $conditionType): self { return $this; }
             public function create(): Filter { return new Filter(); }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Catalog\Api\Data\ProductLinkInterface::class)) {
+    eval('
+        namespace Magento\Catalog\Api\Data;
+        interface ProductLinkInterface {
+            public function setSku(string $sku): self;
+            public function setLinkedProductSku(string $linkedProductSku): self;
+            public function setLinkType(string $linkType): self;
+            public function setPosition(int $position): self;
+            public function setLinkedProductType(string $linkedProductType): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Catalog\Api\Data\ProductLinkInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Catalog\Api\Data;
+        class ProductLinkInterfaceFactory {
+            public function create(array $data = []): ProductLinkInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
         }
     ');
 }
