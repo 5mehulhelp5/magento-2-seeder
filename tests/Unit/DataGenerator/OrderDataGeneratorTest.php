@@ -23,12 +23,12 @@ final class OrderDataGeneratorTest extends TestCase
 
     public function test_get_dependencies_returns_product_and_customer(): void
     {
-        $this->assertSame(['product', 'customer'], (new OrderDataGenerator())->getDependencies());
+        $this->assertSame(['product.simple', 'customer'], (new OrderDataGenerator())->getDependencies());
     }
 
     public function test_get_dependency_count_for_product(): void
     {
-        $this->assertSame(50, (new OrderDataGenerator())->getDependencyCount('product', 1000));
+        $this->assertSame(50, (new OrderDataGenerator())->getDependencyCount('product.simple', 1000));
     }
 
     public function test_get_dependency_count_for_customer(): void

@@ -81,13 +81,13 @@ class OrderDataGenerator implements DataGeneratorInterface, SubtypeAwareInterfac
 
     public function getDependencies(): array
     {
-        return ['product', 'customer'];
+        return ['product.simple', 'customer'];
     }
 
     public function getDependencyCount(string $dependencyType, int $selfCount): int
     {
         return match ($dependencyType) {
-            'product' => max(1, (int) ceil($selfCount / 20)),
+            'product.simple' => max(1, (int) ceil($selfCount / 20)),
             'customer' => max(1, (int) ceil($selfCount / 5)),
             default => 0,
         };
