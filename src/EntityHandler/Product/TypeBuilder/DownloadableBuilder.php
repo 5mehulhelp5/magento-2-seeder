@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder;
 
 use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Downloadable\Api\Data\File\ContentInterfaceFactory;
 use Magento\Downloadable\Api\Data\LinkInterfaceFactory;
 use Magento\Downloadable\Api\LinkRepositoryInterface;
-use Magento\Framework\App\Filesystem\DirectoryList;
 use Psr\Log\LoggerInterface;
 use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderInterface;
 
@@ -19,7 +19,7 @@ class DownloadableBuilder implements TypeBuilderInterface
     public function __construct(
         private readonly LinkInterfaceFactory $linkFactory,
         private readonly LinkRepositoryInterface $linkRepository,
-        private readonly DirectoryList $directoryList,
+        private readonly ContentInterfaceFactory $fileContentFactory,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -43,18 +43,11 @@ class DownloadableBuilder implements TypeBuilderInterface
             return;
         }
 
-        $mediaRoot = $this->directoryList->getPath(DirectoryList::MEDIA);
-        $filesDir = $mediaRoot . '/downloadable/files';
-        $samplesDir = $mediaRoot . '/downloadable/files_sample';
-
-        $this->ensureDirectory($filesDir);
-        $this->ensureDirectory($samplesDir);
-
         $parentSku = (string) $parent->getSku();
 
         foreach (array_values($links) as $index => $spec) {
             try {
-                $this->createAndSaveLink($parentSku, $filesDir, $samplesDir, $index, $spec);
+                $this->createAndSaveLink($parentSku, $index, $spec);
             } catch (\Throwable $e) {
                 $this->logger->warning(sprintf(
                     'DownloadableBuilder: failed to create link for SKU "%s": %s',
@@ -65,32 +58,24 @@ class DownloadableBuilder implements TypeBuilderInterface
         }
     }
 
-    private function ensureDirectory(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0775, true);
-        }
-    }
-
     /**
      * @param array{title?: string, sample_text?: string} $spec
      */
-    private function createAndSaveLink(
-        string $parentSku,
-        string $filesDir,
-        string $samplesDir,
-        int $index,
-        array $spec
-    ): void {
+    private function createAndSaveLink(string $parentSku, int $index, array $spec): void
+    {
         $title = (string) ($spec['title'] ?? 'Download');
         $sampleText = (string) ($spec['sample_text'] ?? '');
 
-        $id = bin2hex(random_bytes(6));
-        $linkRelative = "/seed-{$id}.txt";
-        $sampleRelative = "/seed-{$id}-sample.txt";
+        $filename = 'seed-' . bin2hex(random_bytes(6)) . '.txt';
+        $sampleName = str_replace('.txt', '-sample.txt', $filename);
 
-        file_put_contents($filesDir . $linkRelative, $sampleText);
-        file_put_contents($samplesDir . $sampleRelative, substr($sampleText, 0, self::SAMPLE_LENGTH));
+        $linkContent = $this->fileContentFactory->create();
+        $linkContent->setFileData(base64_encode($sampleText));
+        $linkContent->setName($filename);
+
+        $sampleContent = $this->fileContentFactory->create();
+        $sampleContent->setFileData(base64_encode(substr($sampleText, 0, self::SAMPLE_LENGTH)));
+        $sampleContent->setName($sampleName);
 
         $link = $this->linkFactory->create();
         $link->setTitle($title);
@@ -99,9 +84,9 @@ class DownloadableBuilder implements TypeBuilderInterface
         $link->setNumberOfDownloads(0);
         $link->setSortOrder($index);
         $link->setLinkType('file');
-        $link->setLinkFile($linkRelative);
         $link->setSampleType('file');
-        $link->setSampleFile($sampleRelative);
+        $link->setLinkFileContent($linkContent);
+        $link->setSampleFileContent($sampleContent);
 
         $this->linkRepository->save($parentSku, $link);
     }

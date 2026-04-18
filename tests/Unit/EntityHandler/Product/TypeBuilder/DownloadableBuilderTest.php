@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\TypeBuilder;
 
 use Magento\Catalog\Model\Product;
+use Magento\Downloadable\Api\Data\File\ContentInterface;
+use Magento\Downloadable\Api\Data\File\ContentInterfaceFactory;
 use Magento\Downloadable\Api\Data\LinkInterface;
 use Magento\Downloadable\Api\Data\LinkInterfaceFactory;
 use Magento\Downloadable\Api\LinkRepositoryInterface;
-use Magento\Framework\App\Filesystem\DirectoryList;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -18,26 +19,15 @@ final class DownloadableBuilderTest extends TestCase
 {
     private LinkInterfaceFactory&MockObject $linkFactory;
     private LinkRepositoryInterface&MockObject $linkRepository;
-    private DirectoryList&MockObject $directoryList;
+    private ContentInterfaceFactory&MockObject $fileContentFactory;
     private LoggerInterface&MockObject $logger;
-    private string $tmpMediaRoot;
 
     protected function setUp(): void
     {
         $this->linkFactory = $this->createMock(LinkInterfaceFactory::class);
         $this->linkRepository = $this->createMock(LinkRepositoryInterface::class);
-        $this->directoryList = $this->createMock(DirectoryList::class);
+        $this->fileContentFactory = $this->createMock(ContentInterfaceFactory::class);
         $this->logger = $this->createMock(LoggerInterface::class);
-
-        $this->tmpMediaRoot = sys_get_temp_dir() . '/seeder-test-' . bin2hex(random_bytes(4));
-        mkdir($this->tmpMediaRoot, 0775, true);
-
-        $this->directoryList->method('getPath')->willReturn($this->tmpMediaRoot);
-    }
-
-    protected function tearDown(): void
-    {
-        $this->rrmdir($this->tmpMediaRoot);
     }
 
     public function test_get_type_returns_downloadable(): void
@@ -65,11 +55,12 @@ final class DownloadableBuilderTest extends TestCase
         $this->assertSame('Downloads', $setDataCalls['links_title'] ?? null);
     }
 
-    public function test_after_save_creates_files_and_saves_one_link_per_spec(): void
+    public function test_after_save_saves_one_link_per_spec(): void
     {
         $parent = $this->createMock(Product::class);
         $parent->method('getSku')->willReturn('SEED-DL-001');
 
+        $this->fileContentFactory->method('create')->willReturnCallback(fn () => $this->stubContent());
         $this->linkFactory->method('create')->willReturnCallback(fn () => $this->stubLink());
 
         $this->linkRepository->expects($this->exactly(2))
@@ -86,83 +77,103 @@ final class DownloadableBuilderTest extends TestCase
         ];
 
         $this->newBuilder()->afterSave($parent, $data);
-
-        $filesDir = $this->tmpMediaRoot . '/downloadable/files';
-        $samplesDir = $this->tmpMediaRoot . '/downloadable/files_sample';
-
-        $this->assertDirectoryExists($filesDir);
-        $this->assertDirectoryExists($samplesDir);
-
-        $files = $this->listFiles($filesDir);
-        $samples = $this->listFiles($samplesDir);
-
-        $this->assertCount(2, $files);
-        $this->assertCount(2, $samples);
     }
 
-    public function test_after_save_writes_full_content_to_link_file_and_first_100_chars_to_sample(): void
+    public function test_after_save_sets_link_file_content_with_base64_of_sample_text(): void
     {
         $parent = $this->createMock(Product::class);
         $parent->method('getSku')->willReturn('SEED-DL-002');
 
+        $sampleText = str_repeat('A', 200);
+
+        $fileDataCalls = [];
+        $this->fileContentFactory->method('create')->willReturnCallback(
+            function () use (&$fileDataCalls) {
+                $content = $this->createMock(ContentInterface::class);
+                $content->method('setFileData')->willReturnCallback(
+                    function (string $data) use ($content, &$fileDataCalls) {
+                        $fileDataCalls[] = $data;
+
+                        return $content;
+                    }
+                );
+                $content->method('setName')->willReturnSelf();
+
+                return $content;
+            }
+        );
+
         $this->linkFactory->method('create')->willReturnCallback(fn () => $this->stubLink());
         $this->linkRepository->method('save')->willReturn(1);
-
-        $longText = str_repeat('A', 200);
 
         $data = [
             'downloadable' => [
                 'links' => [
-                    ['title' => 'Long', 'sample_text' => $longText],
+                    ['title' => 'Long', 'sample_text' => $sampleText],
                 ],
             ],
         ];
 
         $this->newBuilder()->afterSave($parent, $data);
 
-        $filesDir = $this->tmpMediaRoot . '/downloadable/files';
-        $samplesDir = $this->tmpMediaRoot . '/downloadable/files_sample';
-
-        $linkFiles = $this->listFiles($filesDir);
-        $sampleFiles = $this->listFiles($samplesDir);
-
-        $this->assertCount(1, $linkFiles);
-        $this->assertCount(1, $sampleFiles);
-
-        $linkContent = file_get_contents($filesDir . '/' . $linkFiles[0]);
-        $sampleContent = file_get_contents($samplesDir . '/' . $sampleFiles[0]);
-
-        $this->assertSame($longText, $linkContent);
-        $this->assertSame(100, strlen($sampleContent));
-        $this->assertSame(substr($longText, 0, 100), $sampleContent);
+        $this->assertCount(2, $fileDataCalls);
+        $this->assertSame(base64_encode($sampleText), $fileDataCalls[0]);
+        $this->assertSame(base64_encode(substr($sampleText, 0, 100)), $fileDataCalls[1]);
     }
 
-    public function test_after_save_creates_missing_directories(): void
+    public function test_after_save_sets_link_and_sample_types_to_file(): void
     {
         $parent = $this->createMock(Product::class);
         $parent->method('getSku')->willReturn('SEED-DL-003');
 
-        $this->linkFactory->method('create')->willReturnCallback(fn () => $this->stubLink());
+        $this->fileContentFactory->method('create')->willReturnCallback(fn () => $this->stubContent());
         $this->linkRepository->method('save')->willReturn(1);
 
-        $filesDir = $this->tmpMediaRoot . '/downloadable/files';
-        $samplesDir = $this->tmpMediaRoot . '/downloadable/files_sample';
+        $linkTypeCalls = [];
+        $sampleTypeCalls = [];
 
-        $this->assertDirectoryDoesNotExist($filesDir);
-        $this->assertDirectoryDoesNotExist($samplesDir);
+        $this->linkFactory->method('create')->willReturnCallback(
+            function () use (&$linkTypeCalls, &$sampleTypeCalls) {
+                $link = $this->createMock(LinkInterface::class);
+                $link->method('setTitle')->willReturnSelf();
+                $link->method('setPrice')->willReturnSelf();
+                $link->method('setIsShareable')->willReturnSelf();
+                $link->method('setNumberOfDownloads')->willReturnSelf();
+                $link->method('setSortOrder')->willReturnSelf();
+                $link->method('setLinkType')->willReturnCallback(
+                    function (string $type) use ($link, &$linkTypeCalls) {
+                        $linkTypeCalls[] = $type;
+
+                        return $link;
+                    }
+                );
+                $link->method('setSampleType')->willReturnCallback(
+                    function (string $type) use ($link, &$sampleTypeCalls) {
+                        $sampleTypeCalls[] = $type;
+
+                        return $link;
+                    }
+                );
+                $link->method('setLinkFileContent')->willReturnSelf();
+                $link->method('setSampleFileContent')->willReturnSelf();
+
+                return $link;
+            }
+        );
 
         $data = [
             'downloadable' => [
                 'links' => [
-                    ['title' => 'X', 'sample_text' => 'text'],
+                    ['title' => 'A', 'sample_text' => 'aa'],
+                    ['title' => 'B', 'sample_text' => 'bb'],
                 ],
             ],
         ];
 
         $this->newBuilder()->afterSave($parent, $data);
 
-        $this->assertDirectoryExists($filesDir);
-        $this->assertDirectoryExists($samplesDir);
+        $this->assertSame(['file', 'file'], $linkTypeCalls);
+        $this->assertSame(['file', 'file'], $sampleTypeCalls);
     }
 
     public function test_after_save_skips_links_section_when_data_missing(): void
@@ -171,12 +182,10 @@ final class DownloadableBuilderTest extends TestCase
         $parent->method('getSku')->willReturn('SEED-DL-004');
 
         $this->linkFactory->expects($this->never())->method('create');
+        $this->fileContentFactory->expects($this->never())->method('create');
         $this->linkRepository->expects($this->never())->method('save');
 
         $this->newBuilder()->afterSave($parent, []);
-
-        $this->assertDirectoryDoesNotExist($this->tmpMediaRoot . '/downloadable/files');
-        $this->assertDirectoryDoesNotExist($this->tmpMediaRoot . '/downloadable/files_sample');
     }
 
     public function test_after_save_logs_warning_on_link_save_failure_but_continues(): void
@@ -184,6 +193,7 @@ final class DownloadableBuilderTest extends TestCase
         $parent = $this->createMock(Product::class);
         $parent->method('getSku')->willReturn('SEED-DL-005');
 
+        $this->fileContentFactory->method('create')->willReturnCallback(fn () => $this->stubContent());
         $this->linkFactory->method('create')->willReturnCallback(fn () => $this->stubLink());
 
         $callCount = 0;
@@ -219,7 +229,7 @@ final class DownloadableBuilderTest extends TestCase
         return new DownloadableBuilder(
             $this->linkFactory,
             $this->linkRepository,
-            $this->directoryList,
+            $this->fileContentFactory,
             $this->logger,
         );
     }
@@ -233,52 +243,19 @@ final class DownloadableBuilderTest extends TestCase
         $link->method('setNumberOfDownloads')->willReturnSelf();
         $link->method('setSortOrder')->willReturnSelf();
         $link->method('setLinkType')->willReturnSelf();
-        $link->method('setLinkFile')->willReturnSelf();
         $link->method('setSampleType')->willReturnSelf();
-        $link->method('setSampleFile')->willReturnSelf();
+        $link->method('setLinkFileContent')->willReturnSelf();
+        $link->method('setSampleFileContent')->willReturnSelf();
 
         return $link;
     }
 
-    /**
-     * @return list<string>
-     */
-    private function listFiles(string $dir): array
+    private function stubContent(): ContentInterface
     {
-        if (!is_dir($dir)) {
-            return [];
-        }
+        $content = $this->createMock(ContentInterface::class);
+        $content->method('setFileData')->willReturnSelf();
+        $content->method('setName')->willReturnSelf();
 
-        $entries = scandir($dir);
-        if ($entries === false) {
-            return [];
-        }
-
-        return array_values(array_filter(
-            $entries,
-            static fn (string $name) => $name !== '.' && $name !== '..'
-        ));
-    }
-
-    private function rrmdir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST
-        );
-
-        foreach ($iterator as $file) {
-            if ($file->isDir()) {
-                rmdir($file->getPathname());
-            } else {
-                unlink($file->getPathname());
-            }
-        }
-
-        rmdir($dir);
+        return $content;
     }
 }

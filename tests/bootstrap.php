@@ -956,6 +956,27 @@ if (!class_exists(\Magento\Catalog\Api\Data\ProductLinkInterfaceFactory::class))
 
 // Downloadable product stubs
 
+if (!interface_exists(\Magento\Downloadable\Api\Data\File\ContentInterface::class)) {
+    eval('
+        namespace Magento\Downloadable\Api\Data\File;
+        interface ContentInterface {
+            public function setFileData(string $fileData): self;
+            public function setName(string $name): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Downloadable\Api\Data\File\ContentInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Downloadable\Api\Data\File;
+        class ContentInterfaceFactory {
+            public function create(array $data = []): ContentInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
 if (!interface_exists(\Magento\Downloadable\Api\Data\LinkInterface::class)) {
     eval('
         namespace Magento\Downloadable\Api\Data;
@@ -969,6 +990,8 @@ if (!interface_exists(\Magento\Downloadable\Api\Data\LinkInterface::class)) {
             public function setLinkFile(string $linkFile): self;
             public function setSampleType(string $sampleType): self;
             public function setSampleFile(string $sampleFile): self;
+            public function setLinkFileContent(\Magento\Downloadable\Api\Data\File\ContentInterface $content): self;
+            public function setSampleFileContent(\Magento\Downloadable\Api\Data\File\ContentInterface $content): self;
         }
     ');
 }
