@@ -848,11 +848,204 @@ git log --oneline | head -5
 
 ---
 
+## Task 15: Scaffold StateTransitionInterface and Pool (orders)
+
+**Files:**
+- Create: `src/EntityHandler/Order/StateTransitionInterface.php`
+- Create: `src/EntityHandler/Order/StateTransitionPool.php`
+- Create: `tests/Unit/EntityHandler/Order/StateTransitionPoolTest.php`
+
+Mirror the `TypeBuilderPool` pattern exactly: constructor takes a keyed array of transitions, validates each implements the interface, exposes `get`/`has`/`getTypes`. Interface:
+
+```php
+interface StateTransitionInterface
+{
+    public function getState(): string;
+    public function apply(\Magento\Sales\Api\Data\OrderInterface $order, array $data): void;
+}
+```
+
+TDD same as Task 2.
+
+**Commit:** `feat: add Order StateTransitionInterface and pool`
+
+---
+
+## Task 16: Implement NewTransition, HoldedTransition, CanceledTransition
+
+**Files:**
+- Create: `src/EntityHandler/Order/StateTransition/NewTransition.php`
+- Create: `src/EntityHandler/Order/StateTransition/HoldedTransition.php`
+- Create: `src/EntityHandler/Order/StateTransition/CanceledTransition.php`
+- Create: three matching test files under `tests/Unit/EntityHandler/Order/StateTransition/`
+
+NewTransition is a no-op. HoldedTransition calls `$order->hold()` then saves via `OrderRepositoryInterface`. CanceledTransition calls `$order->cancel()` then saves.
+
+TDD per transition: assert `hold()` / `cancel()` is called, then `save($order)`.
+
+**Commit:** `feat: add new/holded/canceled order state transitions`
+
+---
+
+## Task 17: Implement ProcessingTransition (invoice)
+
+**Files:**
+- Create: `src/EntityHandler/Order/StateTransition/ProcessingTransition.php`
+- Create: `tests/Unit/EntityHandler/Order/StateTransition/ProcessingTransitionTest.php`
+- Modify: `tests/bootstrap.php` (add stubs for `InvoiceService`, `InvoiceRepositoryInterface`, `InvoiceInterface`, `TransactionFactory`)
+
+Injects `\Magento\Sales\Model\Service\InvoiceService` + `\Magento\Sales\Api\InvoiceRepositoryInterface` + `\Magento\Framework\DB\TransactionFactory`.
+
+Flow:
+
+```php
+$invoice = $this->invoiceService->prepareInvoice($order);
+$invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
+$invoice->register();
+$transaction = $this->transactionFactory->create();
+$transaction->addObject($invoice)->addObject($order)->save();
+```
+
+Test asserts the invoice is prepared, registered, and committed via transaction.
+
+**Commit:** `feat: add processing transition (invoice)`
+
+---
+
+## Task 18: Implement CompleteTransition (invoice + shipment)
+
+**Files:**
+- Create: `src/EntityHandler/Order/StateTransition/CompleteTransition.php`
+- Create: `tests/Unit/EntityHandler/Order/StateTransition/CompleteTransitionTest.php`
+- Modify: `tests/bootstrap.php` (add stubs for `ShipmentFactory`, `ShipmentRepositoryInterface`)
+
+Reuses the processing flow, then adds a shipment:
+
+```php
+$shipment = $this->shipmentFactory->create($order, $itemsQty);
+$shipment->register();
+$transaction = $this->transactionFactory->create();
+$transaction->addObject($shipment)->addObject($order)->save();
+```
+
+`$itemsQty` maps `order_item_id => qty` for all items.
+
+**Commit:** `feat: add complete transition (invoice + shipment)`
+
+---
+
+## Task 19: Implement ClosedTransition (invoice + credit memo)
+
+**Files:**
+- Create: `src/EntityHandler/Order/StateTransition/ClosedTransition.php`
+- Create: `tests/Unit/EntityHandler/Order/StateTransition/ClosedTransitionTest.php`
+- Modify: `tests/bootstrap.php` (add stubs for `CreditmemoFactory`, `CreditmemoService`)
+
+Flow: invoice (as in ProcessingTransition), then:
+
+```php
+$creditmemo = $this->creditmemoFactory->createByOrder($order);
+$this->creditmemoService->refund($creditmemo, true);
+```
+
+The second arg `true` means offline — no payment gateway call.
+
+**Commit:** `feat: add closed transition (invoice + credit memo)`
+
+---
+
+## Task 20: Emit order_state from OrderDataGenerator
+
+**Files:**
+- Modify: `src/DataGenerator/OrderDataGenerator.php`
+- Modify: `tests/Unit/DataGenerator/OrderDataGeneratorTest.php`
+
+Same pattern as ProductDataGenerator (Task 5 + 12). Add `order_state` to returned data. Implement `SubtypeAwareInterface`. Default weights:
+
+```php
+const STATE_WEIGHTS = [
+    'new' => 15,
+    'processing' => 25,
+    'complete' => 40,
+    'canceled' => 10,
+    'holded' => 5,
+    'closed' => 5,
+];
+```
+
+Tests assert the key is present, forced subtype is respected, and weighted distribution across many seeded runs produces all states at least once.
+
+**Commit:** `feat: OrderDataGenerator emits weighted order_state`
+
+---
+
+## Task 21: Wire OrderHandler to invoke transition after placeOrder
+
+**Files:**
+- Modify: `src/EntityHandler/OrderHandler.php`
+- Modify: `tests/Unit/EntityHandler/OrderHandlerTest.php`
+- Modify: `src/etc/di.xml` (wire `StateTransitionPool` with 6 transitions)
+
+Add `StateTransitionPool` as a constructor dependency. After `placeOrder($cartId)`:
+
+```php
+$order = $this->orderRepository->get($orderId);
+$state = $data['order_state'] ?? 'new';
+if ($this->transitionPool->has($state)) {
+    $this->transitionPool->get($state)->apply($order, $data);
+}
+```
+
+`placeOrder` returns the order ID as `int`. Load the order fresh so it has the status/state assigned by `placeOrder` before transitioning.
+
+Test asserts the matching transition is invoked with the loaded order.
+
+**Commit:** `feat: OrderHandler routes orders through state transitions`
+
+---
+
+## Task 22: Integration smoke test for order states
+
+Extend the mage-os-typesense smoke run:
+
+```bash
+warden env exec php-fpm bash -c "bin/magento db:seed --generate=order:50 --seed=20260420"
+```
+
+Expected: CLI reports 50 orders, zero failures.
+
+DB verification:
+
+```bash
+warden env exec -T db mysql -uroot -pmagento -N -e "USE magento;
+SELECT state, COUNT(*) FROM sales_order WHERE entity_id > (SELECT COALESCE(MAX(entity_id),0)-50 FROM (SELECT entity_id FROM sales_order) t)
+GROUP BY state;
+SELECT COUNT(*) FROM sales_invoice;
+SELECT COUNT(*) FROM sales_shipment;
+SELECT COUNT(*) FROM sales_creditmemo;
+SELECT COUNT(*) FROM sales_order WHERE state IN ('holded','canceled');"
+```
+
+Expected: at least 4 distinct states across the 50 orders, at least one invoice, one shipment, one credit memo. Ratios roughly match weights (complete is majority).
+
+Force-state query to prove explicit subtype works:
+
+```bash
+warden env exec php-fpm bash -c "bin/magento db:seed --generate=order.complete:5,order.canceled:2 --seed=20260421"
+```
+
+Verify the latest 7 orders include exactly 5 `complete` and 2 `canceled`.
+
+Commit the verification notes nowhere — this task is pure verification.
+
+---
+
 ## Completion criteria
 
-- All 104+ unit tests pass (expect ~20 new tests added across builders and runner).
+- All 104+ unit tests pass (expect ~35 new tests added across product builders, order transitions, runner).
 - Integration smoke against mage-os-typesense produces at least one of each product type in the DB, visible on frontend.
+- Orders distributed across at least 4 of 6 states in a 50-order run; explicit `order.<state>:N` forces exactly that state.
 - `db:seed --generate=product:N` produces a mix across all five types (verified by type distribution query).
 - `--stop-on-error` still halts on the first failure.
-- `--fresh` still cleans prior SEED- data including bundle options, super links, downloadable links.
-- README documents the new syntax.
+- `--fresh` still cleans prior SEED- data including bundle options, super links, downloadable links, invoices, shipments, credit memos.
+- README documents the new product-type and order-state syntax.

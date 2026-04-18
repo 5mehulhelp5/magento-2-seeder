@@ -143,6 +143,74 @@ Modified:
 - `src/etc/di.xml` — wire the builder pool, add new composer deps.
 - `composer.json` — add `magento/module-configurable-product`, `magento/module-bundle`, `magento/module-grouped-product`, `magento/module-downloadable` to `require`.
 
+## Order state support (added 2026-04-18)
+
+The generator also produces orders in a mix of Magento states so dev stores feel populated. Supported states: `new`, `processing`, `complete`, `canceled`, `holded`, `closed`. Skipped: `pending_payment`, `payment_review` (require payment-method plumbing; low dev value).
+
+### CLI
+
+Mirrors the product-type syntax:
+
+```
+bin/magento db:seed --generate=order:100                   # weighted split
+bin/magento db:seed --generate=order.complete:50,order.canceled:10
+bin/magento db:seed --generate=order:100,order.holded:5    # combine
+```
+
+Default weights: 15/25/40/10/5/5 across new/processing/complete/canceled/holded/closed.
+
+### Architecture
+
+Same shape as product types — extract a strategy pool:
+
+```
+OrderDataGenerator ──► writes 'order_state' + state-specific params
+OrderHandler ────► places the order (unchanged) ──► OrderStateTransitionPool
+                                                       ├─ NewTransition           (no-op)
+                                                       ├─ ProcessingTransition    (invoice)
+                                                       ├─ CompleteTransition      (invoice + shipment)
+                                                       ├─ CanceledTransition      (cancel)
+                                                       ├─ HoldedTransition        (hold)
+                                                       └─ ClosedTransition        (invoice + credit memo)
+```
+
+### Transitions (how Magento gets to each state)
+
+- `new`: no-op.
+- `processing`: `InvoiceService::prepareInvoice()` → register → save via `InvoiceRepository`. Payment captures offline (checkmo).
+- `complete`: processing steps, then build a shipment via `ShipmentFactory::create()` with all items → save via `ShipmentRepository`.
+- `canceled`: `Order::cancel()` then save via `OrderRepository`.
+- `holded`: `Order::hold()` then save via `OrderRepository`.
+- `closed`: invoice, then `CreditmemoFactory::createByOrder()` + `CreditmemoService::refund($memo, true)` for a full offline refund.
+
+### Failure handling
+
+A transition throwing does not bring down the run. The order still exists in state `new`; the transition failure is logged and counted toward the order type's `failed` count. Non-invoiceable orders (empty cart edge cases) skip gracefully.
+
+### Tests
+
+- Unit: one test file per transition strategy (6 files, mocking `InvoiceService`, `ShipmentFactory`, `CreditmemoService`, `OrderRepository` etc).
+- Unit: `OrderDataGeneratorTest` asserts `order_state` is emitted and forced when `setForcedSubtype()` is called.
+- Integration: `bin/magento db:seed --generate=order:50 --seed=X` produces orders in at least 4 distinct states; DB query on `sales_order.state` confirms the distribution roughly matches weights.
+
+### Files (orders addendum)
+
+New:
+- `src/EntityHandler/Order/StateTransitionInterface.php`
+- `src/EntityHandler/Order/StateTransitionPool.php`
+- `src/EntityHandler/Order/StateTransition/NewTransition.php`
+- `src/EntityHandler/Order/StateTransition/ProcessingTransition.php`
+- `src/EntityHandler/Order/StateTransition/CompleteTransition.php`
+- `src/EntityHandler/Order/StateTransition/CanceledTransition.php`
+- `src/EntityHandler/Order/StateTransition/HoldedTransition.php`
+- `src/EntityHandler/Order/StateTransition/ClosedTransition.php`
+
+Modified:
+- `src/EntityHandler/OrderHandler.php` — call pool after `placeOrder`.
+- `src/DataGenerator/OrderDataGenerator.php` — emits `order_state` via weighted random or forced subtype.
+- `src/Service/GenerateRunner.php` — already subtype-aware from Task 12; same mechanism applies to `order.*`.
+- `src/etc/di.xml` — register the pool.
+
 ## Open follow-ups (deliberately out of scope)
 
 - Tuning the 70/10/10/5/5 split or letting the user pass weights.
