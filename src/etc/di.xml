@@ -28,6 +28,15 @@
         </arguments>
     </type>
 
+    <!-- Product Type Builder Pool -->
+    <type name="RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderPool">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="simple" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\SimpleBuilder</item>
+            </argument>
+        </arguments>
+    </type>
+
     <!-- CLI Command Registration -->
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
