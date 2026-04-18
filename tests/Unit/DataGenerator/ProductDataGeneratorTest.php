@@ -54,7 +54,7 @@ final class ProductDataGeneratorTest extends TestCase
         $this->assertGreaterThan(0, $data['price']);
     }
 
-    public function test_generate_includes_product_type_simple_by_default(): void
+    public function test_generate_includes_product_type_key(): void
     {
         $faker = Factory::create('en_US');
         $registry = new GeneratedDataRegistry();
@@ -63,7 +63,10 @@ final class ProductDataGeneratorTest extends TestCase
         $data = $generator->generate($faker, $registry);
 
         $this->assertArrayHasKey('product_type', $data);
-        $this->assertSame('simple', $data['product_type']);
+        $this->assertContains(
+            $data['product_type'],
+            ['simple', 'configurable', 'bundle', 'grouped', 'downloadable'],
+        );
     }
 
     public function test_generate_assigns_category_from_registry(): void
@@ -92,5 +95,55 @@ final class ProductDataGeneratorTest extends TestCase
         }
 
         $this->assertSame(50, count(array_unique($skus)));
+    }
+
+    public function test_generate_respects_forced_subtype(): void
+    {
+        $faker = Factory::create('en_US');
+        $registry = new GeneratedDataRegistry();
+        $generator = new ProductDataGenerator();
+        $generator->setForcedSubtype('bundle');
+
+        for ($i = 0; $i < 20; $i++) {
+            $data = $generator->generate($faker, $registry);
+            $this->assertSame('bundle', $data['product_type']);
+        }
+    }
+
+    public function test_generate_returns_weighted_random_when_not_forced(): void
+    {
+        $faker = Factory::create('en_US');
+        $faker->seed(1234);
+        $registry = new GeneratedDataRegistry();
+        $generator = new ProductDataGenerator();
+
+        $seen = [];
+        for ($i = 0; $i < 200; $i++) {
+            $data = $generator->generate($faker, $registry);
+            $seen[$data['product_type']] = true;
+        }
+
+        $this->assertGreaterThanOrEqual(
+            3,
+            count($seen),
+            'Weighted random across 200 iterations should produce at least 3 distinct subtypes',
+        );
+    }
+
+    public function test_generate_emits_downloadable_payload_when_subtype_is_downloadable(): void
+    {
+        $faker = Factory::create('en_US');
+        $registry = new GeneratedDataRegistry();
+        $generator = new ProductDataGenerator();
+        $generator->setForcedSubtype('downloadable');
+
+        $data = $generator->generate($faker, $registry);
+
+        $this->assertArrayHasKey('downloadable', $data);
+        $this->assertArrayHasKey('links', $data['downloadable']);
+        $this->assertNotEmpty($data['downloadable']['links']);
+        $firstLink = $data['downloadable']['links'][0];
+        $this->assertArrayHasKey('title', $firstLink);
+        $this->assertArrayHasKey('sample_text', $firstLink);
     }
 }
