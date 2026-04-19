@@ -5,6 +5,18 @@ All notable changes to `runasroot/module-seeder` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Abstract `RunAsRoot\Seeder\Seeder` base class so class-based seeders skip the `EntityHandlerPool` boilerplate and extend a typed fluent base.
+- Fluent `RunAsRoot\Seeder\SeedBuilder` API: `$this->orders()->count(50)->with([...])->using($fn)->subtype('bundle')->create()`. Per-iteration callbacks receive `(int $i, Faker\Generator $faker)`.
+- `examples/FluentOrderSeeder.php` demonstrating the new style.
+
+### Changed
+
+- `SeedBuilder::create()` writes created entity data (including the `id` returned by the handler) into `GeneratedDataRegistry` under the base type, matching `GenerateRunner` semantics. This means later builders within the same `run()` can reference ids through generators.
+
 ## [1.0.0] - 2026-04-19
 
 First stable release. Establishes the public API baseline for

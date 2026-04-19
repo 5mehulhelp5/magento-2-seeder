@@ -103,32 +103,71 @@ data:
 
 Invalid JSON/YAML files are logged to `var/log/` and skipped; the rest of the run continues.
 
-### Class-Based (powerful)
+### Class-Based (fluent, recommended)
 
-For complex scenarios — loops, Faker, conditional logic:
+For complex scenarios, extend `RunAsRoot\Seeder\Seeder` and use the fluent builder:
 
 ```php
 <?php
 // dev/seeders/MassOrderSeeder.php
-use RunAsRoot\Seeder\Api\SeederInterface;
-use RunAsRoot\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Seeder;
 
-class MassOrderSeeder implements SeederInterface
+class MassOrderSeeder extends Seeder
 {
-    public function __construct(private readonly EntityHandlerPool $handlerPool) {}
-
     public function getType(): string { return 'order'; }
     public function getOrder(): int { return 40; }
 
     public function run(): void
     {
-        $handler = $this->handlerPool->get('order');
-        for ($i = 0; $i < 50; $i++) {
-            $handler->create([
-                'customer_email' => "customer{$i}@test.com",
-                'items' => [['sku' => 'PRODUCT-001', 'qty' => rand(1, 5)]],
-            ]);
-        }
+        $this->orders()
+            ->count(50)
+            ->with(['items' => [['sku' => 'TSHIRT-001', 'qty' => 2]]])
+            ->create();
+    }
+}
+```
+
+Available builder entry points: `customers()`, `products()`, `orders()`, `categories()`, `cms()`, plus `seed('custom_type')` for types registered via `di.xml`.
+
+Builder methods:
+
+| Method | Purpose |
+|---|---|
+| `->count(int $n)` | How many to create |
+| `->with(array $data)` | Static overrides merged into each iteration (shallow replace) |
+| `->using(callable $fn)` | Per-iteration callback: `fn(int $i, Faker\Generator $faker): array` |
+| `->subtype(string $s)` | Force subtype (e.g. `'bundle'` for products, `'complete'` for orders) |
+| `->create()` | Executes and returns `int[]` of created ids |
+
+Precedence (most specific wins): `using()` > `with()` > generator Faker defaults.
+
+If your subclass needs its own dependencies, override the constructor and call `parent::__construct(...)`:
+
+```php
+public function __construct(
+    EntityHandlerPool $handlers,
+    DataGeneratorPool $generators,
+    FakerFactory $fakerFactory,
+    GeneratedDataRegistry $registry,
+    private readonly MyService $svc,
+) {
+    parent::__construct($handlers, $generators, $fakerFactory, $registry);
+}
+```
+
+### Class-Based (low-level)
+
+If you need full control, implement `SeederInterface` directly and inject `EntityHandlerPool`:
+
+```php
+class CustomSeeder implements SeederInterface
+{
+    public function __construct(private readonly EntityHandlerPool $handlerPool) {}
+    public function getType(): string { return 'order'; }
+    public function getOrder(): int { return 40; }
+    public function run(): void
+    {
+        $this->handlerPool->get('order')->create([...]);
     }
 }
 ```
