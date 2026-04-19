@@ -21,7 +21,11 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0",
-        "symfony/console": "^6.0 || ^7.0"
+        "symfony/console": "^6.0 || ^7.0",
+        "phpstan/phpstan": "^1.11",
+        "magento/magento-coding-standard": "*",
+        "squizlabs/php_codesniffer": "^3.10",
+        "psr/log": "^3.0"
     },
     "autoload": {
         "files": [
@@ -34,6 +38,36 @@
     "autoload-dev": {
         "psr-4": {
             "RunAsRoot\\Seeder\\Test\\": "tests/"
+        }
+    },
+    "scripts": {
+        "phpstan": "phpstan analyse",
+        "phpcs": "phpcs --standard=Magento2 --report=full src",
+        "phpcbf": "phpcbf --standard=Magento2 src",
+        "check": ["@phpcs", "@phpstan", "phpunit"]
+    },
+    "repositories": {
+        "magento-stubs": {
+            "type": "package",
+            "package": [
+                {"name": "magento/framework", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-bundle", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-catalog", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-catalog-inventory", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-checkout", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-cms", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-configurable-product", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-customer", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-downloadable", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-grouped-product", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-quote", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-sales", "version": "999.999.999", "type": "metapackage"}
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     }
 }

@@ -85,7 +85,7 @@ class GenerateRunner
                 }
             }
         } finally {
-            if ($subtypeAware) {
+            if ($subtypeAware && $generator instanceof SubtypeAwareInterface) {
                 $generator->setForcedSubtype(null);
             }
         }

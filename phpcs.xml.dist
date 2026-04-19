@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ruleset name="RunAsRoot-Seeder">
+    <description>RunAsRoot Seeder coding standard</description>
+
+    <!-- Only PHP files; skip CSS/JS/GraphQL sniffs that fire on files we don't ship -->
+    <arg name="extensions" value="php"/>
+
+    <!-- Fail the build on errors only; warnings are surfaced but non-fatal -->
+    <arg name="warning-severity" value="0"/>
+
+    <!-- Default path to scan -->
+    <file>src</file>
+
+    <rule ref="Magento2">
+        <!-- Exclude overly strict rules that don't apply to a dev-only module -->
+        <exclude name="Magento2.Functions.DiscouragedFunction"/>
+        <exclude name="Magento2.PHP.FinalImplementation"/>
+        <!-- Dynamic seeder discovery legitimately uses include_once -->
+        <exclude name="Magento2.Security.IncludeFile.FoundIncludeFile"/>
+        <!-- Idiomatic @file_get_contents for HTTP calls that may fail -->
+        <exclude name="Generic.PHP.NoSilencedErrors.Discouraged"/>
+    </rule>
+</ruleset>
