@@ -1140,6 +1140,10 @@ if (!interface_exists(\Magento\Sales\Api\CreditmemoManagementInterface::class)) 
 }
 
 if (!class_exists(\Magento\Review\Model\Review::class)) {
+    // setEntityPkValue/setStatusId/setTitle/setDetail/setNickname/setStoreId/setStores are
+    // intentionally omitted: in real Magento those go through DataObject::__call, so tests
+    // must declare them via getMockBuilder()->addMethods([...]). setEntityId is a real
+    // declared method on Magento\Review\Model\Review and stays on the stub to match.
     eval('
         namespace Magento\Review\Model;
         class Review {
@@ -1149,13 +1153,6 @@ if (!class_exists(\Magento\Review\Model\Review::class)) {
             public const STATUS_NOT_APPROVED = 3;
             public function getEntityIdByCode(string $code): int { return 1; }
             public function setEntityId($id): self { return $this; }
-            public function setEntityPkValue($id): self { return $this; }
-            public function setStatusId($id): self { return $this; }
-            public function setTitle(string $title): self { return $this; }
-            public function setDetail(string $detail): self { return $this; }
-            public function setNickname(string $nickname): self { return $this; }
-            public function setStoreId(int $storeId): self { return $this; }
-            public function setStores(array $stores): self { return $this; }
             public function save(): self { return $this; }
             public function getId() { return 1; }
         }
