@@ -123,4 +123,45 @@ final class SeedBuilderTest extends TestCase
             $received
         );
     }
+
+    public function test_subtype_sets_and_clears_forced_subtype_on_subtype_aware_generator(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willReturn(1);
+
+        // Anonymous class implementing both DataGeneratorInterface and SubtypeAwareInterface
+        // to exercise the instanceof branch precisely.
+        $generator = new class implements
+            \RunAsRoot\Seeder\Api\DataGeneratorInterface,
+            \RunAsRoot\Seeder\Api\SubtypeAwareInterface {
+            public ?string $forced = null;
+            /** @var list<string|null> */
+            public array $forcedHistory = [];
+            public function getType(): string { return 'product'; }
+            public function getOrder(): int { return 20; }
+            public function generate(
+                \Faker\Generator $f,
+                \RunAsRoot\Seeder\Service\GeneratedDataRegistry $r
+            ): array {
+                $this->forcedHistory[] = $this->forced;
+                return ['sku' => 'X'];
+            }
+            public function getDependencies(): array { return []; }
+            public function getDependencyCount(string $t, int $c): int { return 0; }
+            public function setForcedSubtype(?string $subtype): void { $this->forced = $subtype; }
+        };
+
+        $builder = new SeedBuilder(
+            'product',
+            new EntityHandlerPool(['product' => $handler]),
+            new DataGeneratorPool(['product' => $generator]),
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+        );
+
+        $builder->subtype('bundle')->create();
+
+        $this->assertSame(['bundle'], $generator->forcedHistory);
+        $this->assertNull($generator->forced, 'subtype must be cleared after create()');
+    }
 }

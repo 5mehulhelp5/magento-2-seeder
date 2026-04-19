@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RunAsRoot\Seeder;
 
+use RunAsRoot\Seeder\Api\SubtypeAwareInterface;
 use RunAsRoot\Seeder\Service\DataGeneratorPool;
 use RunAsRoot\Seeder\Service\EntityHandlerPool;
 use RunAsRoot\Seeder\Service\FakerFactory;
@@ -18,6 +19,8 @@ final class SeedBuilder
 
     /** @var (callable(int, \Faker\Generator): array)|null */
     private $using = null;
+
+    private ?string $subtype = null;
 
     public function __construct(
         private readonly string $type,
@@ -46,24 +49,44 @@ final class SeedBuilder
         return $this;
     }
 
+    public function subtype(string $subtype): self
+    {
+        $this->subtype = $subtype;
+        return $this;
+    }
+
     /** @return int[] created ids */
     public function create(): array
     {
-        $baseType = explode('.', $this->type, 2)[0];
+        $parts = explode('.', $this->type, 2);
+        $baseType = $parts[0];
+        $dottedSubtype = $parts[1] ?? null;
+        $effectiveSubtype = $this->subtype ?? $dottedSubtype;
+
         $handler = $this->handlers->get($baseType);
         $generator = $this->generators->get($baseType);
         $faker = $this->fakerFactory->create();
 
-        $ids = [];
-        for ($i = 0; $i < $this->count; $i++) {
-            $data = $generator->generate($faker, $this->registry);
-            $data = array_replace($data, $this->with);
-            if ($this->using !== null) {
-                $data = array_replace($data, ($this->using)($i, $faker));
-            }
-            $ids[] = $handler->create($data);
+        $subtypeAware = $effectiveSubtype !== null && $generator instanceof SubtypeAwareInterface;
+        if ($subtypeAware) {
+            $generator->setForcedSubtype($effectiveSubtype);
         }
 
-        return $ids;
+        try {
+            $ids = [];
+            for ($i = 0; $i < $this->count; $i++) {
+                $data = $generator->generate($faker, $this->registry);
+                $data = array_replace($data, $this->with);
+                if ($this->using !== null) {
+                    $data = array_replace($data, ($this->using)($i, $faker));
+                }
+                $ids[] = $handler->create($data);
+            }
+            return $ids;
+        } finally {
+            if ($subtypeAware) {
+                $generator->setForcedSubtype(null);
+            }
+        }
     }
 }
