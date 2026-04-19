@@ -61,4 +61,28 @@ final class SeedBuilderTest extends TestCase
 
         $this->assertSame([1, 2, 3], $builder->count(3)->create());
     }
+
+    public function test_with_merges_static_data_over_generator_output(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('create')
+            ->with(['email' => 'gen@example.com', 'firstname' => 'Override'])
+            ->willReturn(7);
+
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('generate')->willReturn(
+            ['email' => 'gen@example.com', 'firstname' => 'Generated']
+        );
+
+        $builder = new SeedBuilder(
+            'customer',
+            new EntityHandlerPool(['customer' => $handler]),
+            new DataGeneratorPool(['customer' => $generator]),
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+        );
+
+        $this->assertSame([7], $builder->with(['firstname' => 'Override'])->create());
+    }
 }
