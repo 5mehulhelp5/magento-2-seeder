@@ -238,4 +238,57 @@ final class SeedBuilderTest extends TestCase
 
         $builder->create();
     }
+
+    public function test_create_writes_created_entity_with_id_to_registry(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willReturnOnConsecutiveCalls(11, 12);
+
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('generate')->willReturn(['email' => 'x@y.com']);
+
+        $registry = new GeneratedDataRegistry();
+
+        $builder = new SeedBuilder(
+            'customer',
+            new EntityHandlerPool(['customer' => $handler]),
+            new DataGeneratorPool(['customer' => $generator]),
+            new FakerFactory(),
+            $registry,
+        );
+
+        $builder->count(2)->create();
+
+        $this->assertSame(
+            [
+                ['email' => 'x@y.com', 'id' => 11],
+                ['email' => 'x@y.com', 'id' => 12],
+            ],
+            $registry->getAll('customer')
+        );
+    }
+
+    public function test_registry_writeback_uses_base_type_for_subtyped_calls(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willReturn(77);
+
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('generate')->willReturn(['sku' => 'X']);
+
+        $registry = new GeneratedDataRegistry();
+
+        $builder = new SeedBuilder(
+            'product.bundle',
+            new EntityHandlerPool(['product' => $handler]),
+            new DataGeneratorPool(['product' => $generator]),
+            new FakerFactory(),
+            $registry,
+        );
+
+        $builder->create();
+
+        $this->assertCount(1, $registry->getAll('product'));
+        $this->assertSame([], $registry->getAll('product.bundle'));
+    }
 }

@@ -91,7 +91,10 @@ final class SeedBuilder
                 if ($this->using !== null) {
                     $data = array_replace($data, ($this->using)($i, $faker));
                 }
-                $ids[] = $handler->create($data);
+                $id = $handler->create($data);
+                $data['id'] = $id;
+                $this->registry->add($baseType, $data);
+                $ids[] = $id;
             }
             return $ids;
         } finally {
