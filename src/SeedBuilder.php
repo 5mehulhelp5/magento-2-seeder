@@ -98,7 +98,7 @@ final class SeedBuilder
             }
             return $ids;
         } finally {
-            if ($subtypeAware) {
+            if ($generator instanceof SubtypeAwareInterface) {
                 $generator->setForcedSubtype(null);
             }
         }
