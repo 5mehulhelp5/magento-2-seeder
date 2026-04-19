@@ -1,6 +1,9 @@
 # Magento 2 Database Seeder
 
-Laravel-style database seeding for Magento 2. Define simple PHP files, run `bin/magento db:seed`, populate your dev environment.
+[![CI](https://github.com/run-as-root/magento-2-seeder/actions/workflows/ci.yml/badge.svg)](https://github.com/run-as-root/magento-2-seeder/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+Laravel-style database seeding for Magento 2 / Mage-OS. Define simple PHP / JSON / YAML files (or use the built-in Faker generators), run `bin/magento db:seed`, populate your dev environment with realistic products, categories, customers, orders, CMS content, and reviews.
 
 ## Installation
 
@@ -36,6 +39,9 @@ bin/magento db:seed --stop-on-error
 
 # Combine flags
 bin/magento db:seed --fresh --only=customer,product
+
+# Show current DB counts of seeded entities
+bin/magento db:seed:status
 ```
 
 ## Seeder Formats
