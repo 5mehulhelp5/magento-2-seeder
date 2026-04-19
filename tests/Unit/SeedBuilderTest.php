@@ -85,4 +85,42 @@ final class SeedBuilderTest extends TestCase
 
         $this->assertSame([7], $builder->with(['firstname' => 'Override'])->create());
     }
+
+    public function test_using_callback_is_called_per_iteration_and_overrides_with(): void
+    {
+        $received = [];
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willReturnCallback(
+            function (array $data) use (&$received): int {
+                $received[] = $data;
+                return count($received);
+            }
+        );
+
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('generate')->willReturn(['base' => 'b']);
+
+        $builder = new SeedBuilder(
+            'customer',
+            new EntityHandlerPool(['customer' => $handler]),
+            new DataGeneratorPool(['customer' => $generator]),
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+        );
+
+        $builder
+            ->count(2)
+            ->with(['w' => 'static'])
+            ->using(fn(int $i) => ['i' => $i, 'w' => 'dynamic'])
+            ->create();
+
+        $this->assertSame(
+            [
+                ['base' => 'b', 'w' => 'dynamic', 'i' => 0],
+                ['base' => 'b', 'w' => 'dynamic', 'i' => 1],
+            ],
+            $received
+        );
+    }
 }

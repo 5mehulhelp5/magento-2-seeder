@@ -16,6 +16,9 @@ final class SeedBuilder
     /** @var array<string, mixed> */
     private array $with = [];
 
+    /** @var (callable(int, \Faker\Generator): array)|null */
+    private $using = null;
+
     public function __construct(
         private readonly string $type,
         private readonly EntityHandlerPool $handlers,
@@ -37,6 +40,12 @@ final class SeedBuilder
         return $this;
     }
 
+    public function using(callable $fn): self
+    {
+        $this->using = $fn;
+        return $this;
+    }
+
     /** @return int[] created ids */
     public function create(): array
     {
@@ -49,6 +58,9 @@ final class SeedBuilder
         for ($i = 0; $i < $this->count; $i++) {
             $data = $generator->generate($faker, $this->registry);
             $data = array_replace($data, $this->with);
+            if ($this->using !== null) {
+                $data = array_replace($data, ($this->using)($i, $faker));
+            }
             $ids[] = $handler->create($data);
         }
 
