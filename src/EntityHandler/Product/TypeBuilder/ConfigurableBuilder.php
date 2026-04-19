@@ -146,6 +146,8 @@ class ConfigurableBuilder implements TypeBuilderInterface
                 'is_in_stock' => 1,
                 'qty' => 100,
             ]);
+        }
+        if (method_exists($child, 'setWebsiteIds')) {
             $child->setWebsiteIds([1]);
         }
 

@@ -53,3 +53,29 @@ jobs:
 
       - name: Run PHPUnit
         run: vendor/bin/phpunit --colors=always
+
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - run: vendor/bin/phpstan analyse --no-progress
+
+  phpcs:
+    name: Magento Coding Standard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - run: vendor/bin/phpcs
