@@ -2,34 +2,36 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
-    <!-- Entity Handler Pool -->
+    <!-- Entity Handler Pool (Proxies keep setup:install / bin/magento bootstrap cheap;
+         handlers are only materialised when actually invoked by the seed commands.) -->
     <type name="RunAsRoot\Seeder\Service\EntityHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="customer" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CustomerHandler</item>
-                <item name="product" xsi:type="object">RunAsRoot\Seeder\EntityHandler\ProductHandler</item>
-                <item name="category" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CategoryHandler</item>
-                <item name="order" xsi:type="object">RunAsRoot\Seeder\EntityHandler\OrderHandler</item>
-                <item name="cms" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CmsHandler</item>
-                <item name="newsletter_subscriber" xsi:type="object">RunAsRoot\Seeder\EntityHandler\NewsletterSubscriberHandler</item>
-                <item name="cart_rule" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CartRuleHandler</item>
-                <item name="wishlist" xsi:type="object">RunAsRoot\Seeder\EntityHandler\WishlistHandler</item>
+                <item name="customer" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CustomerHandler\Proxy</item>
+                <item name="product" xsi:type="object">RunAsRoot\Seeder\EntityHandler\ProductHandler\Proxy</item>
+                <item name="category" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CategoryHandler\Proxy</item>
+                <item name="order" xsi:type="object">RunAsRoot\Seeder\EntityHandler\OrderHandler\Proxy</item>
+                <item name="cms" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CmsHandler\Proxy</item>
+                <item name="newsletter_subscriber" xsi:type="object">RunAsRoot\Seeder\EntityHandler\NewsletterSubscriberHandler\Proxy</item>
+                <item name="cart_rule" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CartRuleHandler\Proxy</item>
+                <item name="wishlist" xsi:type="object">RunAsRoot\Seeder\EntityHandler\WishlistHandler\Proxy</item>
             </argument>
         </arguments>
     </type>
 
-    <!-- Data Generator Pool -->
+    <!-- Data Generator Pool (same rationale as the handler pool: proxy everything so
+         the CLI bootstrap used by setup:install does not eagerly hit EAV tables.) -->
     <type name="RunAsRoot\Seeder\Service\DataGeneratorPool">
         <arguments>
             <argument name="generators" xsi:type="array">
-                <item name="customer" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CustomerDataGenerator</item>
-                <item name="product" xsi:type="object">RunAsRoot\Seeder\DataGenerator\ProductDataGenerator</item>
-                <item name="category" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CategoryDataGenerator</item>
-                <item name="order" xsi:type="object">RunAsRoot\Seeder\DataGenerator\OrderDataGenerator</item>
-                <item name="cms" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CmsDataGenerator</item>
-                <item name="newsletter_subscriber" xsi:type="object">RunAsRoot\Seeder\DataGenerator\NewsletterSubscriberDataGenerator</item>
-                <item name="cart_rule" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CartRuleDataGenerator</item>
-                <item name="wishlist" xsi:type="object">RunAsRoot\Seeder\DataGenerator\WishlistDataGenerator</item>
+                <item name="customer" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CustomerDataGenerator\Proxy</item>
+                <item name="product" xsi:type="object">RunAsRoot\Seeder\DataGenerator\ProductDataGenerator\Proxy</item>
+                <item name="category" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CategoryDataGenerator\Proxy</item>
+                <item name="order" xsi:type="object">RunAsRoot\Seeder\DataGenerator\OrderDataGenerator\Proxy</item>
+                <item name="cms" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CmsDataGenerator\Proxy</item>
+                <item name="newsletter_subscriber" xsi:type="object">RunAsRoot\Seeder\DataGenerator\NewsletterSubscriberDataGenerator\Proxy</item>
+                <item name="cart_rule" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CartRuleDataGenerator\Proxy</item>
+                <item name="wishlist" xsi:type="object">RunAsRoot\Seeder\DataGenerator\WishlistDataGenerator\Proxy</item>
             </argument>
         </arguments>
     </type>
