@@ -16,8 +16,6 @@ class CartRuleDataGenerator implements DataGeneratorInterface
         'free_shipping' => 10,
     ];
 
-    private const CODE_PREFIXES = ['SAVE', 'DEAL', 'PROMO', 'BONUS'];
-
     public function getType(): string
     {
         return 'cart_rule';
@@ -35,6 +33,7 @@ class CartRuleDataGenerator implements DataGeneratorInterface
             'by_percent'    => [(float) $faker->numberBetween(5, 30), 'SAVE'],
             'by_fixed'      => [(float) $faker->numberBetween(5, 50), 'DEAL'],
             'free_shipping' => [0.0, 'PROMO'],
+            default         => [0.0, 'SAVE'],
         };
 
         $ruleName = sprintf('Seed Rule — %s', $faker->words(2, true));
