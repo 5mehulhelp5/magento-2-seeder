@@ -44,6 +44,10 @@ class NewsletterSubscriberHandler implements EntityHandlerInterface
     {
         $connection = $this->resource->getConnection();
         $table = $this->resource->getTableName('newsletter_subscriber');
+        // Only seed rows: Faker's safeEmail() produces only @example.{com,org,net}.
+        // NOTE: A real user with an @example.* address on the same instance would
+        // also match. Dev-tool tradeoff — document in README if your install has
+        // real @example.* users.
         $connection->delete(
             $table,
             ["subscriber_email LIKE ?" => '%@example.%']

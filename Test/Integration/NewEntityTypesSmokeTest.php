@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\Test\Integration;
 
 use Magento\Framework\App\ResourceConnection;
+use Magento\SalesRule\Api\Data\CouponInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 use RunAsRoot\Seeder\Service\GenerateRunConfig;
@@ -39,6 +40,14 @@ final class NewEntityTypesSmokeTest extends TestCase
             . "WHERE code LIKE 'SAVE%' OR code LIKE 'DEAL%' OR code LIKE 'PROMO%'"
         );
         $this->assertGreaterThanOrEqual(3, count($coupons));
+
+        foreach ($coupons as $coupon) {
+            $this->assertSame(
+                (int) CouponInterface::TYPE_MANUAL,
+                (int) $coupon['type'],
+                'Seeded coupons must be TYPE_MANUAL, not auto-generated'
+            );
+        }
     }
 
     public function test_generate_newsletter_subscribers_with_customers(): void
@@ -58,6 +67,18 @@ final class NewEntityTypesSmokeTest extends TestCase
         $table = $connection->getTableName('newsletter_subscriber');
         $rows = $connection->fetchAll("SELECT * FROM {$table} WHERE subscriber_email LIKE '%@example.%'");
         $this->assertGreaterThanOrEqual(10, count($rows));
+
+        $linked = array_values(array_filter($rows, fn($r) => (int) $r['customer_id'] > 0));
+        $guests = array_values(array_filter($rows, fn($r) => (int) $r['customer_id'] === 0));
+        $this->assertNotEmpty($linked, 'Expected at least one customer-linked subscriber');
+        $this->assertNotEmpty($guests, 'Expected at least one guest subscriber');
+
+        $linkedCustomerIds = array_map(fn($r) => (int) $r['customer_id'], $linked);
+        $this->assertSame(
+            count($linkedCustomerIds),
+            count(array_unique($linkedCustomerIds)),
+            'Linked subscribers must reference distinct customers'
+        );
     }
 
     public function test_generate_wishlists_with_customers_and_products(): void
@@ -88,7 +109,28 @@ final class NewEntityTypesSmokeTest extends TestCase
         $itemTable = $connection->getTableName('wishlist_item');
         $wishlists = $connection->fetchAll("SELECT * FROM {$wishlistTable}");
         $this->assertGreaterThanOrEqual(3, count($wishlists));
-        $items = $connection->fetchAll("SELECT * FROM {$itemTable}");
-        $this->assertGreaterThanOrEqual(3, count($items));
+
+        // Find the wishlists the runner just created (those attached to seed customers)
+        $seedWishlistIds = array_map(
+            fn($w) => (int) $w['wishlist_id'],
+            $connection->fetchAll(
+                "SELECT w.wishlist_id FROM {$wishlistTable} w "
+                . "INNER JOIN {$connection->getTableName('customer_entity')} c ON c.entity_id = w.customer_id "
+                . "WHERE c.email LIKE '%@example.%'"
+            )
+        );
+        $this->assertGreaterThanOrEqual(3, count($seedWishlistIds), 'Expected >= 3 wishlists tied to seed customers');
+
+        if (!empty($seedWishlistIds)) {
+            $placeholders = implode(',', array_fill(0, count($seedWishlistIds), '?'));
+            $items = $connection->fetchAll(
+                "SELECT * FROM {$itemTable} WHERE wishlist_id IN ({$placeholders})",
+                $seedWishlistIds
+            );
+            $this->assertGreaterThanOrEqual(3, count($items), 'Expected >= 3 items across seed wishlists');
+            foreach ($items as $item) {
+                $this->assertGreaterThanOrEqual(1, (float) $item['qty']);
+            }
+        }
     }
 }

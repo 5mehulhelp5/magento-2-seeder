@@ -60,6 +60,10 @@ class WishlistHandler implements EntityHandlerInterface
         $wishlistTable = $this->resource->getTableName('wishlist');
         $customerTable = $this->resource->getTableName('customer_entity');
 
+        // Only seed rows: Faker's safeEmail() produces only @example.{com,org,net}.
+        // NOTE: A real user with an @example.* address on the same instance would
+        // also match. Dev-tool tradeoff — document in README if your install has
+        // real @example.* users.
         $select = $connection->select()
             ->from($customerTable, ['entity_id'])
             ->where('email LIKE ?', '%@example.%');
