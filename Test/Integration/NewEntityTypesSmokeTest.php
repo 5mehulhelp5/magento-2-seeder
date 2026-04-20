@@ -36,7 +36,7 @@ final class NewEntityTypesSmokeTest extends TestCase
 
         $coupons = $connection->fetchAll(
             "SELECT * FROM {$couponTable} "
-            . "WHERE code LIKE 'SAVE%' OR code LIKE 'DEAL%' OR code LIKE 'PROMO%' OR code LIKE 'BONUS%'"
+            . "WHERE code LIKE 'SAVE%' OR code LIKE 'DEAL%' OR code LIKE 'PROMO%'"
         );
         $this->assertGreaterThanOrEqual(3, count($coupons));
     }

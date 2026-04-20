@@ -74,7 +74,7 @@ Newsletter does **not** declare `customer` as a dependency — we tolerate zero 
 
 Action mix weights: `by_percent` 60 / `by_fixed` 30 / `free_shipping` 10.
 
-Coupon code format: `<PREFIX><NN>-<RAND6>` where `PREFIX` is one of `SAVE`, `DEAL`, `PROMO`, `BONUS` (tracks the action) and `RAND6` is an uppercase alnum token. Collisions are vanishingly unlikely at dev-data scale; the handler catches the (rare) duplicate exception and retries once with a new tail.
+Coupon code format: `<PREFIX><NN>-<RAND6>` where `PREFIX` is one of `SAVE`, `DEAL`, `PROMO` (tracks the action) and `RAND6` is an uppercase alnum token. Collisions are vanishingly unlikely at dev-data scale; the handler catches the (rare) duplicate exception and retries once with a new tail.
 
 ### `wishlist`
 
