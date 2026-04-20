@@ -12,6 +12,7 @@
                 <item name="order" xsi:type="object">RunAsRoot\Seeder\EntityHandler\OrderHandler</item>
                 <item name="cms" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CmsHandler</item>
                 <item name="newsletter_subscriber" xsi:type="object">RunAsRoot\Seeder\EntityHandler\NewsletterSubscriberHandler</item>
+                <item name="cart_rule" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CartRuleHandler</item>
             </argument>
         </arguments>
     </type>
@@ -26,6 +27,7 @@
                 <item name="order" xsi:type="object">RunAsRoot\Seeder\DataGenerator\OrderDataGenerator</item>
                 <item name="cms" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CmsDataGenerator</item>
                 <item name="newsletter_subscriber" xsi:type="object">RunAsRoot\Seeder\DataGenerator\NewsletterSubscriberDataGenerator</item>
+                <item name="cart_rule" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CartRuleDataGenerator</item>
             </argument>
         </arguments>
     </type>
