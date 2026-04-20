@@ -188,3 +188,4 @@ Modified:
 - Wishlist sharing (`shared=1`, share_mails).
 - Subscriber mixed statuses (pending, unsubscribed) — useful for email-platform testing, not for populating a dev store.
 - Linking cart rules to specific customers (uses_per_customer targeting).
+- `WishlistHandler` bypasses `Wishlist::addNewItem`'s stock guard via direct `wishlist_item` inserts (simple products only). Revisit if the generator ever picks configurable/bundle products or if MSI stock-source support is wanted — the direct insert skips option serialization and MSI-aware salability.
