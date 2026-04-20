@@ -11,6 +11,7 @@ use RunAsRoot\Seeder\Service\SeederRunner;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Registry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,6 +24,7 @@ class SeedCommand extends Command
         private readonly State $appState,
         private readonly SeederRunner $runner,
         private readonly GenerateRunner $generateRunner,
+        private readonly Registry $registry,
     ) {
         parent::__construct();
     }
@@ -83,6 +85,10 @@ class SeedCommand extends Command
             $this->appState->setAreaCode(Area::AREA_ADMINHTML);
         } catch (LocalizedException) {
             // Area code already set
+        }
+
+        if ($this->registry->registry('isSecureArea') === null) {
+            $this->registry->register('isSecureArea', true);
         }
 
         $generateOption = $input->getOption('generate');

@@ -74,6 +74,17 @@ if (!class_exists(\Magento\Framework\App\State::class)) {
     ');
 }
 
+if (!class_exists(\Magento\Framework\Registry::class)) {
+    eval('
+        namespace Magento\Framework;
+        class Registry {
+            public function register(string $key, $value, bool $graceful = false): void {}
+            public function registry(string $key) { return null; }
+            public function unregister(string $key): void {}
+        }
+    ');
+}
+
 if (!class_exists(\Magento\Framework\App\Area::class)) {
     eval('
         namespace Magento\Framework\App;

@@ -10,6 +10,7 @@ use RunAsRoot\Seeder\Service\GenerateRunner;
 use RunAsRoot\Seeder\Service\SeederRunConfig;
 use RunAsRoot\Seeder\Service\SeederRunner;
 use Magento\Framework\App\State;
+use Magento\Framework\Registry;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -29,6 +30,7 @@ final class SeedCommandTest extends TestCase
             $this->createMock(State::class),
             $runner,
             $this->createMock(GenerateRunner::class),
+            $this->createMock(Registry::class),
         );
 
         $tester = new CommandTester($command);
@@ -56,6 +58,7 @@ final class SeedCommandTest extends TestCase
             $this->createMock(State::class),
             $runner,
             $this->createMock(GenerateRunner::class),
+            $this->createMock(Registry::class),
         );
         $tester = new CommandTester($command);
         $tester->execute(['--only' => 'customer,order']);
@@ -77,9 +80,54 @@ final class SeedCommandTest extends TestCase
             $this->createMock(State::class),
             $runner,
             $this->createMock(GenerateRunner::class),
+            $this->createMock(Registry::class),
         );
         $tester = new CommandTester($command);
         $tester->execute(['--fresh' => true, '--stop-on-error' => true]);
+
+        $this->assertSame(Command::SUCCESS, $tester->getStatusCode());
+    }
+
+    public function test_registers_is_secure_area_flag_when_unset(): void
+    {
+        $registry = $this->createMock(Registry::class);
+        $registry->method('registry')->with('isSecureArea')->willReturn(null);
+        $registry->expects($this->once())
+            ->method('register')
+            ->with('isSecureArea', true);
+
+        $runner = $this->createMock(SeederRunner::class);
+        $runner->method('run')->willReturn([]);
+
+        $command = new SeedCommand(
+            $this->createMock(State::class),
+            $runner,
+            $this->createMock(GenerateRunner::class),
+            $registry,
+        );
+        $tester = new CommandTester($command);
+        $tester->execute(['--fresh' => true]);
+
+        $this->assertSame(Command::SUCCESS, $tester->getStatusCode());
+    }
+
+    public function test_skips_is_secure_area_registration_when_already_set(): void
+    {
+        $registry = $this->createMock(Registry::class);
+        $registry->method('registry')->with('isSecureArea')->willReturn(true);
+        $registry->expects($this->never())->method('register');
+
+        $runner = $this->createMock(SeederRunner::class);
+        $runner->method('run')->willReturn([]);
+
+        $command = new SeedCommand(
+            $this->createMock(State::class),
+            $runner,
+            $this->createMock(GenerateRunner::class),
+            $registry,
+        );
+        $tester = new CommandTester($command);
+        $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $tester->getStatusCode());
     }
@@ -95,6 +143,7 @@ final class SeedCommandTest extends TestCase
             $this->createMock(State::class),
             $runner,
             $this->createMock(GenerateRunner::class),
+            $this->createMock(Registry::class),
         );
         $tester = new CommandTester($command);
         $tester->execute([]);
@@ -128,6 +177,7 @@ final class SeedCommandTest extends TestCase
             $this->createMock(State::class),
             $runner,
             $generateRunner,
+            $this->createMock(Registry::class),
         );
         $tester = new CommandTester($command);
         $tester->execute([
@@ -158,6 +208,7 @@ final class SeedCommandTest extends TestCase
             $this->createMock(State::class),
             $this->createMock(SeederRunner::class),
             $generateRunner,
+            $this->createMock(Registry::class),
         );
         $tester = new CommandTester($command);
         $tester->execute(['--generate' => 'order:10']);
@@ -209,6 +260,7 @@ final class SeedCommandTest extends TestCase
             $this->createMock(State::class),
             $this->createMock(SeederRunner::class),
             $this->createMock(GenerateRunner::class),
+            $this->createMock(Registry::class),
         );
     }
 

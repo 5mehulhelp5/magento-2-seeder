@@ -5,6 +5,12 @@ All notable changes to `runasroot/module-seeder` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-04-20
+
+### Fixed
+
+- `db:seed --fresh` no longer crashes with "Delete operation is forbidden for current area" on installs that carry sample data (or any non-seeder products/categories). `SeedCommand` now registers `isSecureArea = true` alongside the existing `adminhtml` area code, so category/product cleanup can pass Magento's delete guards from CLI. Registration is skipped when the flag is already set by an outer caller to avoid clobbering.
+
 ## [1.2.0] - 2026-04-20
 
 ### Added
