@@ -330,6 +330,7 @@ if (!interface_exists(\Magento\Catalog\Api\Data\ProductInterface::class)) {
             public function setTypeId(string $typeId): self;
             public function getWeight(): ?float;
             public function setWeight(float $weight): self;
+            public function getStoreId(): ?int;
             public function setCustomAttribute(string $attributeCode, $attributeValue): self;
             public function setProductLinks(array $links): self;
         }
@@ -392,6 +393,7 @@ if (!class_exists(\Magento\Catalog\Model\Product::class)) {
             public function setTypeId(string $typeId): self { return $this; }
             public function getWeight(): ?float { return null; }
             public function setWeight(float $weight): self { return $this; }
+            public function getStoreId(): ?int { return null; }
             public function setCustomAttribute(string $attributeCode, $attributeValue): self { return $this; }
             public function setProductLinks(array $links): self { return $this; }
             public function addImageToMediaGallery($file, $mediaAttribute = null, $move = false, $exclude = true): self { return $this; }
