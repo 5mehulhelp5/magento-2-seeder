@@ -15,6 +15,7 @@
         "magento/module-customer": "*",
         "magento/module-downloadable": "*",
         "magento/module-grouped-product": "*",
+        "magento/module-newsletter": "*",
         "magento/module-quote": "*",
         "magento/module-sales": "*",
         "fakerphp/faker": "^1.23",
@@ -61,6 +62,7 @@
                 {"name": "magento/module-customer", "version": "999.999.999", "type": "metapackage"},
                 {"name": "magento/module-downloadable", "version": "999.999.999", "type": "metapackage"},
                 {"name": "magento/module-grouped-product", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-newsletter", "version": "999.999.999", "type": "metapackage"},
                 {"name": "magento/module-quote", "version": "999.999.999", "type": "metapackage"},
                 {"name": "magento/module-sales", "version": "999.999.999", "type": "metapackage"}
             ]
