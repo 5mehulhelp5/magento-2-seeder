@@ -5,6 +5,8 @@
 
 Laravel-style database seeding for Magento 2 / Mage-OS. Define simple PHP / JSON / YAML files (or use the built-in Faker generators), run `bin/magento db:seed`, populate your dev environment with realistic products, categories, customers, orders, CMS content, reviews, cart rules, wishlists, and newsletter subscribers.
 
+![db:seed --generate=order:10 --fresh](docs/demo/seed-orders.gif)
+
 ## Installation
 
 ```bash
