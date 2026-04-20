@@ -9,6 +9,7 @@
             <module name="Magento_Quote"/>
             <module name="Magento_Cms"/>
             <module name="Magento_Newsletter"/>
+            <module name="Magento_SalesRule"/>
         </sequence>
     </module>
 </config>
