@@ -68,7 +68,7 @@ final class SeedBuilder
 
         if (!$hasGenerator && $this->with === [] && $this->using === null) {
             throw new \RuntimeException(
-                "No data generator for type \"{$baseType}\"; pass data via ->with(...)"
+                "No data generator for type \"{$baseType}\"; pass data via ->with(...) or ->using(...)"
             );
         }
 

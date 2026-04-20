@@ -318,4 +318,35 @@ final class SeedBuilderTest extends TestCase
 
         $this->assertSame([], $registry->getAll('customer'));
     }
+
+    public function test_create_with_only_using_and_no_generator_writes_callback_result(): void
+    {
+        $received = [];
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willReturnCallback(
+            function (array $data) use (&$received): int {
+                $received[] = $data;
+                return count($received);
+            }
+        );
+
+        $builder = new SeedBuilder(
+            'customer',
+            new EntityHandlerPool(['customer' => $handler]),
+            new DataGeneratorPool([]),
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+        );
+
+        $ids = $builder
+            ->count(2)
+            ->using(fn (int $i): array => ['iteration' => $i])
+            ->create();
+
+        $this->assertSame([1, 2], $ids);
+        $this->assertSame(
+            [['iteration' => 0], ['iteration' => 1]],
+            $received
+        );
+    }
 }

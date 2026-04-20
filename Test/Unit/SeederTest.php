@@ -70,4 +70,54 @@ final class SeederTest extends TestCase
         $subject = $this->makeSubject();
         $this->assertNotSame($subject->publicCustomers(), $subject->publicCustomers());
     }
+
+    public function test_entry_methods_bind_to_their_expected_types(): void
+    {
+        $calls = [];
+        $makeHandler = function (string $type) use (&$calls) {
+            $handler = $this->createMock(\RunAsRoot\Seeder\Api\EntityHandlerInterface::class);
+            $handler->method('create')->willReturnCallback(
+                function () use (&$calls, $type): int {
+                    $calls[] = $type;
+                    return 1;
+                }
+            );
+            return $handler;
+        };
+
+        $subject = new class(
+            new EntityHandlerPool([
+                'customer' => $makeHandler('customer'),
+                'product'  => $makeHandler('product'),
+                'order'    => $makeHandler('order'),
+                'category' => $makeHandler('category'),
+                'cms'      => $makeHandler('cms'),
+                'wishlist' => $makeHandler('wishlist'),
+            ]),
+            new DataGeneratorPool([]),
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+        ) extends Seeder {
+            public function getType(): string { return 't'; }
+            public function getOrder(): int { return 1; }
+            public function run(): void {}
+
+            public function hitAll(): void
+            {
+                $this->customers()->with(['_' => 1])->create();
+                $this->products()->with(['_' => 1])->create();
+                $this->orders()->with(['_' => 1])->create();
+                $this->categories()->with(['_' => 1])->create();
+                $this->cms()->with(['_' => 1])->create();
+                $this->seed('wishlist')->with(['_' => 1])->create();
+            }
+        };
+
+        $subject->hitAll();
+
+        $this->assertSame(
+            ['customer', 'product', 'order', 'category', 'cms', 'wishlist'],
+            $calls
+        );
+    }
 }
