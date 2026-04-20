@@ -10,9 +10,6 @@ use Faker\Generator;
 
 class NewsletterSubscriberDataGenerator implements DataGeneratorInterface
 {
-    /** @var array<int, true> */
-    private array $linkedCustomerIds = [];
-
     public function getType(): string
     {
         return 'newsletter_subscriber';
@@ -26,15 +23,20 @@ class NewsletterSubscriberDataGenerator implements DataGeneratorInterface
     public function generate(Generator $faker, GeneratedDataRegistry $registry): array
     {
         $customers = $registry->getAll('customer');
+        $alreadyLinked = [];
+        foreach ($registry->getAll('newsletter_subscriber') as $existing) {
+            if (($existing['customer_id'] ?? 0) > 0) {
+                $alreadyLinked[(int) $existing['customer_id']] = true;
+            }
+        }
         $availableCustomers = array_values(array_filter(
             $customers,
-            fn(array $c): bool => !isset($this->linkedCustomerIds[(int) ($c['id'] ?? 0)])
+            fn(array $c): bool => !isset($alreadyLinked[(int) ($c['id'] ?? 0)])
         ));
         $linkToCustomer = !empty($availableCustomers) && $faker->boolean(50);
 
         if ($linkToCustomer) {
             $customer = $faker->randomElement($availableCustomers);
-            $this->linkedCustomerIds[(int) $customer['id']] = true;
 
             return [
                 'email' => $customer['email'],
