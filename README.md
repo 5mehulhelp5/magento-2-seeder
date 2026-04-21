@@ -330,6 +330,31 @@ return [
 
 This triggers the Faker generation pipeline (with dependency resolution) instead of the standard array-based data flow.
 
+### Commerce-quality fake data
+
+Faker's default `words()` / `sentence()` helpers produce lorem-ipsum —
+fine for `description` fields, bad for product *names*. This module
+registers a `CommerceProvider` on every `Faker\Generator` it hands out,
+mirroring the `commerce` module from [@faker-js/faker][fjs] (MIT).
+
+Methods available on `$faker` in any custom seeder / data generator:
+
+| Method | Example |
+|--------|---------|
+| `$faker->productName()` | `Handcrafted Rubber Pizza` |
+| `$faker->productAdjective()` | `Handcrafted` |
+| `$faker->productMaterial()` | `Rubber` |
+| `$faker->product()` | `Pizza` |
+| `$faker->productDepartment()` | `Electronics` |
+
+Used internally by `ProductDataGenerator` (product names) and
+`CategoryDataGenerator` (category names). Locale is `en_US` only in v1;
+other locales silently fall back to English wordlists. See
+`src/Faker/Provider/Data/Commerce/README.md` for refresh + locale-extension
+instructions.
+
+[fjs]: https://github.com/faker-js/faker
+
 ## Product Reviews
 
 Every seeded product automatically gets **0–10 reviews** with Faker-generated nicknames, titles, details, and a 1–5 star rating. Reviews are created against the default store (id 1) with status `Approved` so they render on the frontend immediately.
