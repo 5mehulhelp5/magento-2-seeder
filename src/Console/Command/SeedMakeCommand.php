@@ -45,8 +45,20 @@ class SeedMakeCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $type = (string) $input->getOption('type');
-        $count = (int) $input->getOption('count');
+        $isInteractive = $input->isInteractive();
+
+        $rawType = $input->getOption('type');
+        $rawCount = $input->getOption('count');
+
+        if (!$isInteractive && ($rawType === null || $rawType === '' || $rawCount === null || $rawCount === '')) {
+            $output->writeln(
+                '<error>Non-interactive mode requires --type and --count (or run in a TTY).</error>',
+            );
+            return Command::FAILURE;
+        }
+
+        $type = (string) $rawType;
+        $count = (int) $rawCount;
         $format = (string) $input->getOption('format');
         $locale = (string) ($input->getOption('locale') ?: 'en_US');
         $seedOption = $input->getOption('seed');

@@ -100,6 +100,17 @@ final class SeedMakeCommandTest extends TestCase
         $this->assertStringContainsString('toml', $tester->getDisplay());
     }
 
+    public function test_non_interactive_without_required_flags_errors_out(): void
+    {
+        $command = $this->makeCommand(['order']);
+        $tester = new CommandTester($command);
+
+        $exit = $tester->execute([], ['interactive' => false]);
+
+        $this->assertSame(Command::FAILURE, $exit);
+        $this->assertMatchesRegularExpression('/--type.*--count/s', $tester->getDisplay());
+    }
+
     /** @param string[] $knownTypes */
     private function makeCommand(array $knownTypes): SeedMakeCommand
     {
