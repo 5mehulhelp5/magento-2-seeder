@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace RunAsRoot\Seeder\Test\Unit\Service;
 
+use Laravel\Prompts\Prompt;
 use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use RunAsRoot\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Service\ArraySeederAdapter;
 use RunAsRoot\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Service\GenerateRunConfig;
+use RunAsRoot\Seeder\Service\GenerateRunner;
 use RunAsRoot\Seeder\Service\SeederDiscovery;
 use RunAsRoot\Seeder\Service\SeederRunConfig;
 use RunAsRoot\Seeder\Service\SeederRunner;
@@ -15,6 +19,18 @@ use Psr\Log\LoggerInterface;
 
 final class SeederRunnerTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        // Non-TTY environments: spin() falls back to renderStatically which
+        // still executes the callback. Prompt::fake() avoids terminal noise.
+        Prompt::fake();
+    }
+
+    protected function tearDown(): void
+    {
+        \Mockery::close();
+    }
+
     public function test_runs_discovered_seeders_sorted_by_order(): void
     {
         $executionOrder = [];
@@ -167,6 +183,68 @@ final class SeederRunnerTest extends TestCase
         $this->assertCount(2, $results);
         $this->assertFalse($results[0]['success']);
         $this->assertTrue($results[1]['success']);
+    }
+
+    public function test_sets_progress_callback_on_count_adapter(): void
+    {
+        $capturedCallback = null;
+        $generateRunner = $this->createMock(GenerateRunner::class);
+        $generateRunner->expects($this->once())
+            ->method('run')
+            ->willReturnCallback(function (GenerateRunConfig $config, ?callable $onProgress = null) use (&$capturedCallback): array {
+                $capturedCallback = $onProgress;
+
+                return [];
+            });
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $pool = new EntityHandlerPool(['order' => $handler]);
+
+        $adapter = new ArraySeederAdapter(
+            ['type' => 'order', 'count' => 5],
+            $pool,
+            $generateRunner,
+        );
+
+        $discovery = $this->createMock(SeederDiscovery::class);
+        $discovery->method('discover')->willReturn([$adapter]);
+
+        $runner = new SeederRunner(
+            $discovery,
+            $pool,
+            $this->createMock(LoggerInterface::class),
+        );
+
+        $onProgress = static function (string $type, int $done, int $total): void {
+        };
+
+        $runner->run(new SeederRunConfig(), $onProgress);
+
+        $this->assertNotNull($capturedCallback, 'Progress callback should reach GenerateRunner');
+        $this->assertIsCallable($capturedCallback);
+    }
+
+    public function test_non_adapter_seeder_runs_via_spin_without_error(): void
+    {
+        $ran = false;
+        $seeder = $this->createSeederMock('custom', 10, function () use (&$ran): void {
+            $ran = true;
+        });
+
+        $discovery = $this->createMock(SeederDiscovery::class);
+        $discovery->method('discover')->willReturn([$seeder]);
+
+        $runner = new SeederRunner(
+            $discovery,
+            new EntityHandlerPool([]),
+            $this->createMock(LoggerInterface::class),
+        );
+
+        $results = $runner->run(new SeederRunConfig());
+
+        $this->assertTrue($ran, 'spin() should execute the seeder callback');
+        $this->assertCount(1, $results);
+        $this->assertTrue($results[0]['success']);
     }
 
     private function createSeederMock(string $type, int $order, ?\Closure $runCallback = null): SeederInterface

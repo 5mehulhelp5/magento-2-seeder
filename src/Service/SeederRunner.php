@@ -16,8 +16,12 @@ class SeederRunner
     ) {
     }
 
-    /** @return array<array{type: string, success: bool, error?: string}> */
-    public function run(SeederRunConfig $config): array
+    /**
+     * @param callable(string, int, int): void|null $onProgress Invoked by count-based adapters
+     *                                                          with ($type, $done, $total).
+     * @return array<array{type: string, success: bool, error?: string}>
+     */
+    public function run(SeederRunConfig $config, ?callable $onProgress = null): array
     {
         $seeders = $this->discovery->discover();
         $seeders = $this->filterSeeders($seeders, $config);
@@ -31,7 +35,7 @@ class SeederRunner
         $results = [];
         foreach ($seeders as $seeder) {
             try {
-                $seeder->run();
+                $this->runSeeder($seeder, $onProgress);
                 $results[] = ['type' => $seeder->getType(), 'success' => true];
             } catch (\Throwable $e) {
                 $results[] = ['type' => $seeder->getType(), 'success' => false, 'error' => $e->getMessage()];
@@ -47,6 +51,21 @@ class SeederRunner
         }
 
         return $results;
+    }
+
+    private function runSeeder(SeederInterface $seeder, ?callable $onProgress): void
+    {
+        if ($seeder instanceof ArraySeederAdapter && $seeder->hasCount()) {
+            $seeder->setProgressCallback($onProgress);
+            $seeder->run();
+
+            return;
+        }
+
+        \Laravel\Prompts\spin(
+            static fn () => $seeder->run(),
+            sprintf('Seeding %s', $seeder->getType()),
+        );
     }
 
     /**
