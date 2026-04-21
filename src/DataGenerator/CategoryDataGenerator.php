@@ -10,13 +10,6 @@ use Faker\Generator;
 
 class CategoryDataGenerator implements DataGeneratorInterface
 {
-    private const COMMERCE_CATEGORIES = [
-        'Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books',
-        'Toys', 'Health & Beauty', 'Automotive', 'Food & Grocery', 'Office',
-        'Jewelry', 'Pet Supplies', 'Music', 'Tools', 'Outdoor',
-        'Baby', 'Arts & Crafts', 'Shoes', 'Furniture', 'Kitchen',
-    ];
-
     public function getType(): string
     {
         return 'category';
@@ -29,7 +22,7 @@ class CategoryDataGenerator implements DataGeneratorInterface
 
     public function generate(Generator $faker, GeneratedDataRegistry $registry): array
     {
-        $name = $faker->randomElement(self::COMMERCE_CATEGORIES) . ' ' . $faker->word();
+        $name = $faker->productDepartment();
 
         $parentId = 2;
         $existingCategories = $registry->getAll('category');
@@ -39,7 +32,7 @@ class CategoryDataGenerator implements DataGeneratorInterface
         }
 
         return [
-            'name' => ucwords($name),
+            'name' => $name,
             'is_active' => true,
             'parent_id' => $parentId,
             'description' => $faker->sentence(),

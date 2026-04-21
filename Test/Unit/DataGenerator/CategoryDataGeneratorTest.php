@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\Test\Unit\DataGenerator;
 
 use RunAsRoot\Seeder\DataGenerator\CategoryDataGenerator;
+use RunAsRoot\Seeder\Faker\Provider\CommerceProvider;
+use RunAsRoot\Seeder\Faker\Provider\Data\Commerce\EnUs;
 use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Factory;
 use PHPUnit\Framework\TestCase;
@@ -29,6 +31,7 @@ final class CategoryDataGeneratorTest extends TestCase
     public function test_generate_returns_valid_category_data(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $faker->seed(42);
         $registry = new GeneratedDataRegistry();
 
@@ -46,6 +49,7 @@ final class CategoryDataGeneratorTest extends TestCase
     public function test_generate_can_nest_under_existing_categories(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
         $registry->add('category', ['id' => 5, 'name' => 'Clothing']);
 
