@@ -44,4 +44,30 @@ final class SeederFileBuilderTest extends TestCase
             unlink($path);
         }
     }
+
+    public function test_builds_json_seeder_without_seed(): void
+    {
+        $builder = new SeederFileBuilder();
+
+        $content = $builder->build('order', 100, 'en_US', null, 'json');
+
+        $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame(
+            ['type' => 'order', 'count' => 100, 'locale' => 'en_US'],
+            $decoded,
+        );
+        $this->assertArrayNotHasKey('seed', $decoded);
+    }
+
+    public function test_builds_json_seeder_with_seed(): void
+    {
+        $builder = new SeederFileBuilder();
+        $content = $builder->build('customer', 50, 'de_DE', 42, 'json');
+
+        $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame(
+            ['type' => 'customer', 'count' => 50, 'locale' => 'de_DE', 'seed' => 42],
+            $decoded,
+        );
+    }
 }
