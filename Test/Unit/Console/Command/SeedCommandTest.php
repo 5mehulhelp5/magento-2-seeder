@@ -263,6 +263,31 @@ final class SeedCommandTest extends TestCase
         );
     }
 
+    public function test_passes_progress_callback_to_file_seeder_runner(): void
+    {
+        $runner = $this->createMock(SeederRunner::class);
+        $runner->expects($this->once())
+            ->method('run')
+            ->with(
+                $this->isInstanceOf(SeederRunConfig::class),
+                $this->callback(static fn ($arg): bool => is_callable($arg)),
+            )
+            ->willReturn([]);
+
+        $command = new SeedCommand(
+            $this->createMock(State::class),
+            $runner,
+            $this->createMock(GenerateRunner::class),
+            $this->createMock(Registry::class),
+            new ProgressReporter(),
+        );
+
+        $tester = new CommandTester($command);
+        $tester->execute([]);
+
+        $this->assertSame(Command::SUCCESS, $tester->getStatusCode());
+    }
+
     public function test_empty_dev_seeders_prints_make_hint(): void
     {
         $runner = $this->createMock(SeederRunner::class);

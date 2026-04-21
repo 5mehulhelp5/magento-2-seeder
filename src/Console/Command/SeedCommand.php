@@ -108,7 +108,11 @@ class SeedCommand extends Command
             $output->writeln('<comment>Fresh mode: cleaning existing data...</comment>');
         }
 
-        $results = $this->runner->run($config);
+        try {
+            $results = $this->runner->run($config, $this->progressReporter->asCallable());
+        } finally {
+            $this->progressReporter->finish();
+        }
 
         if ($results === []) {
             $output->writeln('<comment>No seeders found in dev/seeders/</comment>');
