@@ -1,0 +1,79 @@
+name: Bug report
+description: Something's broken or behaving unexpectedly
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. The more detail you give, the faster it gets fixed.
+
+  - type: input
+    id: seeder-version
+    attributes:
+      label: Seeder version
+      description: Output of `composer show runasroot/module-seeder | grep versions` (or the tag/commit you're on)
+      placeholder: "1.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: magento-version
+    attributes:
+      label: Magento / Mage-OS version
+      placeholder: "Magento 2.4.7 / Mage-OS 1.0.5"
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version
+      placeholder: "8.3.10"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands or API calls. Include any relevant YAML, fixture, or config.
+      placeholder: |
+        1. Install the module
+        2. Run `bin/magento db:seed --generate=order:10 --fresh`
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the error message, stack trace, or unexpected output.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: "Optional: `var/log/exception.log`, `var/log/system.log`, or CLI output."
+      render: shell
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmations
+      options:
+        - label: I've searched existing issues and this isn't a duplicate
+          required: true
+        - label: I'm on the latest released version, or I've confirmed the bug exists on `main`
+          required: true
