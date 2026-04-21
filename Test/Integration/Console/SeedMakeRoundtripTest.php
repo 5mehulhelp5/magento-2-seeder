@@ -13,6 +13,10 @@ use RunAsRoot\Seeder\Console\Command\SeedCommand;
 use RunAsRoot\Seeder\Console\Command\SeedMakeCommand;
 use Symfony\Component\Console\Tester\CommandTester;
 
+/**
+ * @magentoDbIsolation enabled
+ * @magentoAppIsolation enabled
+ */
 final class SeedMakeRoundtripTest extends TestCase
 {
     private ObjectManagerInterface $om;
@@ -24,6 +28,11 @@ final class SeedMakeRoundtripTest extends TestCase
 
     public function test_scaffolded_order_seeder_runs_and_creates_orders(): void
     {
+        $searchCriteria = $this->om->get(SearchCriteriaBuilder::class)->create();
+        $before = count(
+            $this->om->get(OrderRepositoryInterface::class)->getList($searchCriteria)->getItems()
+        );
+
         $make = $this->om->get(SeedMakeCommand::class);
         (new CommandTester($make))->execute(
             [
@@ -44,6 +53,6 @@ final class SeedMakeRoundtripTest extends TestCase
         $searchCriteria = $this->om->get(SearchCriteriaBuilder::class)->create();
         $orders = $this->om->get(OrderRepositoryInterface::class)->getList($searchCriteria)->getItems();
 
-        $this->assertGreaterThanOrEqual(3, count($orders));
+        $this->assertGreaterThanOrEqual($before + 3, count($orders));
     }
 }

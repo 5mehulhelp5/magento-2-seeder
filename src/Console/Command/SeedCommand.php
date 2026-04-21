@@ -155,8 +155,11 @@ class SeedCommand extends Command
 
         $output->writeln(sprintf('<comment>Generating with locale: %s</comment>', $config->locale));
 
-        $results = $this->generateRunner->run($config, $this->progressReporter->asCallable());
-        $this->progressReporter->finish();
+        try {
+            $results = $this->generateRunner->run($config, $this->progressReporter->asCallable());
+        } finally {
+            $this->progressReporter->finish();
+        }
 
         $hasError = false;
         foreach ($results as $result) {
