@@ -7,6 +7,7 @@ namespace RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\TypeBuilder;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
+use RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\ProductMockTrait;
 use Magento\ConfigurableProduct\Api\Data\OptionInterface;
 use Magento\ConfigurableProduct\Api\Data\OptionInterfaceFactory;
 use Magento\ConfigurableProduct\Api\Data\OptionValueInterface;
@@ -22,6 +23,8 @@ use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\ConfigurableBuilder;
 
 final class ConfigurableBuilderTest extends TestCase
 {
+    use ProductMockTrait;
+
     private ProductInterfaceFactory&MockObject $productFactory;
     private ProductRepositoryInterface&MockObject $productRepository;
     private EavConfig&MockObject $eavConfig;
@@ -166,7 +169,7 @@ final class ConfigurableBuilderTest extends TestCase
         // Track the SKUs set on children by intercepting productFactory+setSku
         $capturedChildSkus = [];
         $this->productFactory->method('create')->willReturnCallback(function () use (&$capturedChildSkus) {
-            $child = $this->createMock(Product::class);
+            $child = $this->createProductMock();
             $child->method('setSku')->willReturnCallback(function ($sku) use ($child, &$capturedChildSkus) {
                 $capturedChildSkus[] = $sku;
 
@@ -230,7 +233,7 @@ final class ConfigurableBuilderTest extends TestCase
         );
 
         $this->productFactory->method('create')->willReturnCallback(function () {
-            $child = $this->createMock(Product::class);
+            $child = $this->createProductMock();
             $child->method('setSku')->willReturnSelf();
             $child->method('setName')->willReturnSelf();
             $child->method('setPrice')->willReturnSelf();

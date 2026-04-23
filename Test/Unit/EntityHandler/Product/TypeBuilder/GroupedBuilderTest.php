@@ -9,6 +9,7 @@ use Magento\Catalog\Api\Data\ProductLinkInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
+use RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\ProductMockTrait;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
@@ -20,6 +21,7 @@ use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 
 final class GroupedBuilderTest extends TestCase
 {
+    use ProductMockTrait;
     private ProductRepositoryInterface&MockObject $productRepository;
     private ProductLinkInterfaceFactory&MockObject $productLinkFactory;
     private SearchCriteriaBuilder&MockObject $searchCriteriaBuilder;
@@ -44,7 +46,7 @@ final class GroupedBuilderTest extends TestCase
 
     public function test_build_sets_type_id_grouped(): void
     {
-        $product = $this->createMock(Product::class);
+        $product = $this->createProductMock();
         $product->expects($this->once())->method('setTypeId')->with('grouped');
 
         $this->newBuilder()->build($product, []);
@@ -56,7 +58,7 @@ final class GroupedBuilderTest extends TestCase
             $this->registry->add('product', ['sku' => "SEED-{$i}", 'product_type' => 'simple']);
         }
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('GRP-001');
 
         $createCount = 0;
@@ -94,7 +96,7 @@ final class GroupedBuilderTest extends TestCase
     {
         $dbProducts = [];
         for ($i = 1; $i <= 6; $i++) {
-            $p = $this->createMock(Product::class);
+            $p = $this->createProductMock();
             $p->method('getSku')->willReturn("SEED-{$i}");
             $dbProducts[] = $p;
         }
@@ -105,7 +107,7 @@ final class GroupedBuilderTest extends TestCase
         $searchResults->method('getItems')->willReturn($dbProducts);
         $this->productRepository->method('getList')->willReturn($searchResults);
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('GRP-001');
 
         $createCount = 0;
@@ -137,7 +139,7 @@ final class GroupedBuilderTest extends TestCase
         $searchResults->method('getItems')->willReturn([]);
         $this->productRepository->method('getList')->willReturn($searchResults);
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('GRP-001');
 
         $createCount = 0;
@@ -165,7 +167,7 @@ final class GroupedBuilderTest extends TestCase
         $searchResults->method('getItems')->willReturn([]);
         $this->productRepository->method('getList')->willReturn($searchResults);
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('GRP-001');
 
         $this->productLinkFactory->expects($this->never())->method('create');
@@ -185,7 +187,7 @@ final class GroupedBuilderTest extends TestCase
             $this->registry->add('product', ['sku' => "SKU-{$i}", 'product_type' => 'simple']);
         }
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('GRP-001');
 
         $capturedFromSkus = [];

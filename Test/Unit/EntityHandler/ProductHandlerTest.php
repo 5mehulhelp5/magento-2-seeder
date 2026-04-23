@@ -9,6 +9,7 @@ use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderPool;
 use RunAsRoot\Seeder\EntityHandler\ProductHandler;
 use RunAsRoot\Seeder\Service\ImageDownloader;
 use RunAsRoot\Seeder\Service\ReviewCreator;
+use RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\ProductMockTrait;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
@@ -24,6 +25,8 @@ use PHPUnit\Framework\TestCase;
 
 final class ProductHandlerTest extends TestCase
 {
+    use ProductMockTrait;
+
     public function test_get_type_returns_product(): void
     {
         $handler = $this->createHandler();
@@ -122,7 +125,7 @@ final class ProductHandlerTest extends TestCase
 
     public function test_create_attaches_downloaded_image_to_media_gallery(): void
     {
-        $product = $this->createMock(Product::class);
+        $product = $this->createProductMock();
         $product->method('setSku')->willReturnSelf();
         $product->method('setName')->willReturnSelf();
         $product->method('setPrice')->willReturnSelf();
@@ -183,7 +186,7 @@ final class ProductHandlerTest extends TestCase
 
     public function test_create_skips_image_attachment_when_download_fails(): void
     {
-        $product = $this->createMock(Product::class);
+        $product = $this->createProductMock();
         $product->method('setSku')->willReturnSelf();
         $product->method('setName')->willReturnSelf();
         $product->method('setPrice')->willReturnSelf();
@@ -299,7 +302,7 @@ final class ProductHandlerTest extends TestCase
 
     public function test_create_delegates_subtype_work_to_builder(): void
     {
-        $product = $this->createMock(Product::class);
+        $product = $this->createProductMock();
         $product->method('setSku')->willReturnSelf();
         $product->method('setName')->willReturnSelf();
         $product->method('setPrice')->willReturnSelf();
@@ -331,7 +334,7 @@ final class ProductHandlerTest extends TestCase
 
     public function test_create_throws_on_unknown_product_type(): void
     {
-        $product = $this->createMock(Product::class);
+        $product = $this->createProductMock();
         $product->method('setSku')->willReturnSelf();
         $product->method('setName')->willReturnSelf();
         $product->method('setPrice')->willReturnSelf();
@@ -355,7 +358,7 @@ final class ProductHandlerTest extends TestCase
 
     public function test_create_routes_reviews_to_review_creator(): void
     {
-        $product = $this->createMock(Product::class);
+        $product = $this->createProductMock();
         $product->method('setSku')->willReturnSelf();
         $product->method('setName')->willReturnSelf();
         $product->method('setPrice')->willReturnSelf();

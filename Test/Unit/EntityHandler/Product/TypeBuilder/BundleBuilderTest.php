@@ -13,6 +13,7 @@ use Magento\Bundle\Api\ProductOptionRepositoryInterface;
 use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
+use RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\ProductMockTrait;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
@@ -24,6 +25,7 @@ use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 
 final class BundleBuilderTest extends TestCase
 {
+    use ProductMockTrait;
     private OptionInterfaceFactory&MockObject $optionFactory;
     private LinkInterfaceFactory&MockObject $linkFactory;
     private ProductOptionRepositoryInterface&MockObject $optionRepository;
@@ -54,7 +56,7 @@ final class BundleBuilderTest extends TestCase
 
     public function test_build_sets_type_id_and_dynamic_flags(): void
     {
-        $product = $this->createMock(Product::class);
+        $product = $this->createProductMock();
         $product->expects($this->once())->method('setTypeId')->with('bundle');
 
         $capturedData = [];
@@ -81,7 +83,7 @@ final class BundleBuilderTest extends TestCase
             $this->registry->add('product', ['sku' => "SEED-{$i}", 'product_type' => 'simple']);
         }
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('BUNDLE-1');
 
         $this->stubOptionAndLinkFactories();
@@ -111,7 +113,7 @@ final class BundleBuilderTest extends TestCase
 
         $dbProducts = [];
         for ($i = 3; $i <= 7; $i++) {
-            $p = $this->createMock(Product::class);
+            $p = $this->createProductMock();
             $p->method('getSku')->willReturn("SEED-{$i}");
             $dbProducts[] = $p;
         }
@@ -122,7 +124,7 @@ final class BundleBuilderTest extends TestCase
         $searchResults->method('getItems')->willReturn($dbProducts);
         $this->productRepository->method('getList')->willReturn($searchResults);
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('BUNDLE-1');
 
         $this->stubOptionAndLinkFactories();
@@ -153,7 +155,7 @@ final class BundleBuilderTest extends TestCase
         $searchResults->method('getItems')->willReturn([]);
         $this->productRepository->method('getList')->willReturn($searchResults);
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('BUNDLE-1');
 
         $this->optionRepository->expects($this->never())->method('save');
@@ -170,7 +172,7 @@ final class BundleBuilderTest extends TestCase
             $this->registry->add('product', ['sku' => "SEED-{$i}", 'product_type' => 'simple']);
         }
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('BUNDLE-1');
 
         $capturedTypes = [];
@@ -212,7 +214,7 @@ final class BundleBuilderTest extends TestCase
             $this->registry->add('product', ['sku' => "SEED-{$i}", 'product_type' => 'simple']);
         }
 
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('BUNDLE-1');
 
         $capturedRequired = [];

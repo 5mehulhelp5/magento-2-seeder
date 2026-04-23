@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\TypeBuilder;
 
 use Magento\Catalog\Model\Product;
+use RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\ProductMockTrait;
 use Magento\Downloadable\Api\Data\File\ContentInterface;
 use Magento\Downloadable\Api\Data\File\ContentInterfaceFactory;
 use Magento\Downloadable\Api\Data\LinkInterface;
@@ -17,6 +18,7 @@ use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\DownloadableBuilder;
 
 final class DownloadableBuilderTest extends TestCase
 {
+    use ProductMockTrait;
     private LinkInterfaceFactory&MockObject $linkFactory;
     private LinkRepositoryInterface&MockObject $linkRepository;
     private ContentInterfaceFactory&MockObject $fileContentFactory;
@@ -37,7 +39,7 @@ final class DownloadableBuilderTest extends TestCase
 
     public function test_build_sets_type_id_and_links_config(): void
     {
-        $product = $this->createMock(Product::class);
+        $product = $this->createProductMock();
         $product->expects($this->once())->method('setTypeId')->with('downloadable');
 
         $setDataCalls = [];
@@ -57,7 +59,7 @@ final class DownloadableBuilderTest extends TestCase
 
     public function test_after_save_saves_one_link_per_spec(): void
     {
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('SEED-DL-001');
 
         $this->fileContentFactory->method('create')->willReturnCallback(fn () => $this->stubContent());
@@ -81,7 +83,7 @@ final class DownloadableBuilderTest extends TestCase
 
     public function test_after_save_sets_link_file_content_with_base64_of_sample_text(): void
     {
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('SEED-DL-002');
 
         $sampleText = str_repeat('A', 200);
@@ -123,7 +125,7 @@ final class DownloadableBuilderTest extends TestCase
 
     public function test_after_save_sets_link_and_sample_types_to_file(): void
     {
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('SEED-DL-003');
 
         $this->fileContentFactory->method('create')->willReturnCallback(fn () => $this->stubContent());
@@ -178,7 +180,7 @@ final class DownloadableBuilderTest extends TestCase
 
     public function test_after_save_skips_links_section_when_data_missing(): void
     {
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('SEED-DL-004');
 
         $this->linkFactory->expects($this->never())->method('create');
@@ -190,7 +192,7 @@ final class DownloadableBuilderTest extends TestCase
 
     public function test_after_save_logs_warning_on_link_save_failure_but_continues(): void
     {
-        $parent = $this->createMock(Product::class);
+        $parent = $this->createProductMock();
         $parent->method('getSku')->willReturn('SEED-DL-005');
 
         $this->fileContentFactory->method('create')->willReturnCallback(fn () => $this->stubContent());
