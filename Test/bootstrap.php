@@ -632,7 +632,6 @@ if (!interface_exists(\Magento\Quote\Api\Data\AddressInterface::class)) {
     eval('
         namespace Magento\Quote\Api\Data;
         interface AddressInterface {
-            public function setShippingMethod(string $method): self;
         }
     ');
 }
@@ -1082,7 +1081,6 @@ if (!class_exists(\Magento\Sales\Model\Order\Invoice::class)) {
         namespace Magento\Sales\Model\Order;
         class Invoice {
             public const CAPTURE_OFFLINE = "offline";
-            public function setRequestedCaptureCase(string $case): self { return $this; }
             public function register(): self { return $this; }
         }
     ');
@@ -1433,6 +1431,8 @@ if (!class_exists(\Magento\Newsletter\Model\Subscriber::class)) {
             public function loadByEmail(string $email): self { return $this; }
             public function getId() { return null; }
             public function save(): self { return $this; }
+            public function setEmail($value): self { return $this; }
+            public function setStatus($value): self { return $this; }
         }
     ');
 }

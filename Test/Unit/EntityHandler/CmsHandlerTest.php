@@ -42,7 +42,7 @@ final class CmsHandlerTest extends TestCase
         $pageFactory->method('create')->willReturn($page);
 
         $pageRepository = $this->createMock(PageRepositoryInterface::class);
-        $pageRepository->expects($this->once())->method('save')->with($page);
+        $pageRepository->expects($this->once())->method('save')->with($page)->willReturn($page);
 
         $handler = $this->createHandler(
             pageFactory: $pageFactory,
@@ -73,7 +73,7 @@ final class CmsHandlerTest extends TestCase
         $blockFactory->method('create')->willReturn($block);
 
         $blockRepository = $this->createMock(BlockRepositoryInterface::class);
-        $blockRepository->expects($this->once())->method('save')->with($block);
+        $blockRepository->expects($this->once())->method('save')->with($block)->willReturn($block);
 
         $handler = $this->createHandler(
             blockFactory: $blockFactory,

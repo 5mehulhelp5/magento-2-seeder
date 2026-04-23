@@ -46,7 +46,11 @@ final class CompleteTransitionTest extends TestCase
             ->onlyMethods(['canInvoice', 'getAllItems', 'getEntityId', 'getIncrementId', 'getState', 'hold', 'cancel', 'setState', 'setStatus'])
             ->addMethods(['setIsInProcess'])
             ->getMock();
-        $invoice = $this->createMock(Invoice::class);
+        $invoice = $this->getMockBuilder(Invoice::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['register'])
+            ->addMethods(['setRequestedCaptureCase'])
+            ->getMock();
         $shipment = $this->createMock(Shipment::class);
         $transaction = $this->createMock(Transaction::class);
 

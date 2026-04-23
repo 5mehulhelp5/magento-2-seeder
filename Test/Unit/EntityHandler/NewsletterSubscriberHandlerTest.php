@@ -153,8 +153,8 @@ final class NewsletterSubscriberHandlerTest extends TestCase
     {
         return $this->getMockBuilder(Subscriber::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['loadByEmail', 'getId', 'save'])
-            ->addMethods(['setEmail', 'setStoreId', 'setStatus', 'setCustomerId', 'setStatusChangedAt'])
+            ->onlyMethods(['loadByEmail', 'getId', 'save', 'setEmail', 'setStatus'])
+            ->addMethods(['setStoreId', 'setCustomerId', 'setStatusChangedAt'])
             ->getMock();
     }
 

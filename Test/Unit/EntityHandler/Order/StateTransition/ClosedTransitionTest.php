@@ -50,7 +50,11 @@ final class ClosedTransitionTest extends TestCase
             ->addMethods(['setIsInProcess'])
             ->getMock();
         $refreshedOrder = $this->createMock(Order::class);
-        $invoice = $this->createMock(Invoice::class);
+        $invoice = $this->getMockBuilder(Invoice::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['register'])
+            ->addMethods(['setRequestedCaptureCase'])
+            ->getMock();
         $transaction = $this->createMock(Transaction::class);
         $creditmemo = $this->createMock(Creditmemo::class);
 
