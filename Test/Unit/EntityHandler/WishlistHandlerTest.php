@@ -258,9 +258,8 @@ final class WishlistHandlerTest extends TestCase
     {
         $product = $this->getMockBuilder(ProductInterface::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['getId', 'getSku', 'setSku', 'getName', 'setName', 'getPrice', 'setPrice', 'getAttributeSetId', 'setAttributeSetId', 'getStatus', 'setStatus', 'getVisibility', 'setVisibility', 'getTypeId', 'setTypeId', 'getWeight', 'setWeight', 'setCustomAttribute', 'setProductLinks'])
             ->addMethods(['getStoreId'])
-            ->getMock();
+            ->getMockForAbstractClass();
         $product->method('getId')->willReturn($id);
         $product->method('getStoreId')->willReturn($storeId);
         return $product;

@@ -304,9 +304,8 @@ final class ConfigurableBuilderTest extends TestCase
     ): AttributeInterface&MockObject {
         $attr = $this->getMockBuilder(AttributeInterface::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['getAttributeId', 'getAttributeCode', 'getDefaultFrontendLabel', 'getOptions'])
             ->addMethods(['getFrontendLabel'])
-            ->getMock();
+            ->getMockForAbstractClass();
         $attr->method('getAttributeId')->willReturn($id);
         $attr->method('getAttributeCode')->willReturn($code);
         $attr->method('getDefaultFrontendLabel')->willReturn($label);

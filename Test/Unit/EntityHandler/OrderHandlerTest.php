@@ -275,9 +275,8 @@ final class OrderHandlerTest extends TestCase
     {
         return $this->getMockBuilder(\Magento\Quote\Api\Data\AddressInterface::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['setShippingMethod'])
             ->addMethods(['addData', 'setCollectShippingRates'])
-            ->getMock();
+            ->getMockForAbstractClass();
     }
 
     private function createHandler(
